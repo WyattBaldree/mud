@@ -24,10 +24,14 @@ const commandLine = document.getElementById('commandLine');
 commandLine.onkeypress = handleCommand;
 
 socket.on("chat message", function(msg){
+	let isAtBottom = false;
+	if(messageLog.scrollTop >= messageLog.scrollHeight - messageLog.clientHeight - 10){
+		isAtBottom = true;
+	}
 	let li = document.createElement("li")
 	li.append(msg);
 	document.getElementById("messageLog").prepend(li);
-	if(enterPress){
+	if(enterPress || isAtBottom){
 		let messageLog = document.getElementById("messageLog");
 		messageLog.scrollTop = messageLog.scrollHeight - messageLog.clientHeight;
 		enterPress = false;
