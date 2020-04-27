@@ -1,6 +1,4 @@
 console.log('Server-side code running');
-
-const bodyParser = require('body-parser');
 const express = require('express');
 const app = express();
 const http = require("http").createServer(app);
@@ -9,8 +7,6 @@ var io = require('socket.io')(http);
 
 // serve files from the public directory
 app.use(express.static('public'));
-app.use(bodyParser.urlencoded({extended:true}))
-app.use(bodyParser.json());
 
 io.on('connection', (socket) => {
   console.log('a user connected');
