@@ -1,3 +1,7 @@
+:root {
+  --commandLineHeight: 31px;
+}
+
 * { 
 	margin: 0; 
 	padding: 0; 
@@ -7,49 +11,50 @@
 body {
 	font: 13px Helvetica, Arial;
 	color: white;
-	overflow-y: hidden;
 }
 
 html, body, #outer {
     height: 100%;
     width: 100%;
-    margin: 0;
+    margin: auto;
 }
 
-#outer {
-	display: table;
-	
-}
 
-#messageLogContainer {  
-	display: table-row;
-	background-color: black;
-	overflow-y: scroll;
+.messageLogContainer {  
+	height: calc(100% - var(--commandLineHeight));
+	width:100%;
+	background-color: black;	
+	position:fixed;
 }
 
 #messageLog {  
 	list-style-type: none;
 	padding: 0;
 	margin: 0;
-	height: 100%;
+	height:100%;
+	width:100%;
+	bottom:calc(0px + var(--commandLineHeight));
+	overflow-y:scroll;
 	display: flex;
-	/* move flex-items in column */
-	flex-direction: column;
-	justify-content: flex-end;
+ 	flex-direction: column-reverse;
 }
+
 #messageLog li { 
 	padding: 5px 10px;
 	width: 100%;
+	display: flex;
 }
 
 #messageLog li:nth-child(odd) { 
 	background: #111; 
 }
 
-#commandLineContainer {
-	height: 31px;
-	display: table-row;
+.commandLineContainer {
+	height: var(--commandLineHeight);
+	width:100%;
 	background-color: white;
+	position:fixed;
+	bottom:0px;
 }
 
 #commandLine { 
