@@ -2,11 +2,13 @@ console.log('Client-side code running');
 
 var socket = io();
 let enterPress = false;
+let tempUsername = prompt("enter your name");
+
 
 function handleCommand(e){
 	if(e.code == "Enter"){
 		let commandLine = document.getElementById("commandLine");
-	    socket.emit('command', commandLine.value);
+	    socket.emit('command', tempUsername + ": " + commandLine.value);
 	    commandLine.value = "";
 	    enterPress = true;
 	}
@@ -28,9 +30,11 @@ socket.on("chat message", function(msg){
 	if(messageLog.scrollTop >= messageLog.scrollHeight - messageLog.clientHeight - 10){
 		isAtBottom = true;
 	}
+
 	let li = document.createElement("li")
 	li.append(msg);
 	document.getElementById("messageLog").prepend(li);
+
 	if(enterPress || isAtBottom){
 		let messageLog = document.getElementById("messageLog");
 		messageLog.scrollTop = messageLog.scrollHeight - messageLog.clientHeight;
