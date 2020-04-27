@@ -4,11 +4,17 @@
 	<link rel="stylesheet" type="text/css" href="/css/interfaceStyle.css" />
 </head>
 <body>
-	<div class="messageLog"></div>
-	<div name="bottomDiv" class="commandLine">
-		<input method="post" type="text" name="commandLine" id="commandLine">
+	<div id="outer">
+		<div id="messageLogContainer">
+			<ul id="messageLog"></ul>
+		</div>
+
+		<div id="commandLineContainer">
+			<input type="text" id="commandLine">
+		</div>
 	</div>
 
+	<script src="/socket.io/socket.io.js"></script>
 	<script src="/js/client.js"></script>
 </body>
 </html>

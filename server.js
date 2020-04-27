@@ -1,19 +1,30 @@
 console.log('Server-side code running');
 
-const express = require('express');
 const bodyParser = require('body-parser');
-
+const express = require('express');
 const app = express();
+const http = require("http").createServer(app);
+var io = require('socket.io')(http);
+
 
 // serve files from the public directory
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json());
 
-// start the express web server listening on 8080
-app.listen(8080, () => {
-  console.log('listening on 8080');
+io.on('connection', (socket) => {
+  console.log('a user connected');
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+
+  socket.on('command', handleCommand);
 });
+
+// start the express web server listening on 8080
+http.listen(3000, (req, res) => {
+  console.log('listening on 3000');
+})
 
 // serve the homepage
 app.get('/', (req, res) => {
@@ -21,18 +32,6 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/clientInterface.html');
 });
 
-app.post('/commandSent', (req, res) => {
-  HandleCommand(req.body.command);
-  res.sendStatus(201);
-});
-
-app.post('/getLog', (req, res) => {
-  res.json({log:[
-    "yo",
-    "oy"
-    ]});
-});
-
-function HandleCommand(commandString){
-  console.log(commandString);
+function handleCommand(command){
+  io.emit('chat message', command);
 }

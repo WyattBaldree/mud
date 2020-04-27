@@ -1,57 +1,13 @@
 console.log('Client-side code running');
 
-const commandLine = document.getElementById('commandLine');
-commandLine.onkeypress = handleCommand;
+var socket = io();
 
 function handleCommand(e){
 	if(e.code == "Enter"){
-	    console.log("Enter clicked.");
-		fetch('/commandSent', {
-			method: 'POST',
-		    headers: {
-		      'Accept': 'application/json',
-		      'Content-Type': 'application/json'
-		    },
-			body: JSON.stringify({username: getUsername(), password: getPassword(), command: document.getElementById("commandLine").value})
-		})
-	    .then(function(response) {
-	      if(response.ok) {
-	        console.log("Enter clicked on server.");
-	        updateLog();
-	        return;
-	      }
-	      throw new Error('Request failed.');
-	    })
-	    .catch(function(error) {
-	      console.log(error);
-	    });
+		let commandLine = document.getElementById("commandLine");
+	    socket.emit('command', commandLine.value);
+	    commandLine.value = "";
 	}
-}
-
-function updateLog(){
-	fetch('/getLog', {
-		method: 'POST',
-	    headers: {
-	      'Accept': 'application/json',
-	      'Content-Type': 'application/json'
-	    },
-		body: JSON.stringify({username: getUsername(), password: getPassword()})
-	})
-    .then(function(response) {
-      if(response.ok) {
-        response.json().then(data => {
-		  for(let line of data.log){
-		  	console.log(line);
-		  }
-		});
-
-        return;
-      }
-      throw new Error('Request failed.');
-    })
-    .catch(function(error) {
-      console.log(error);
-    });
 }
 
 function getUsername(){
@@ -61,3 +17,12 @@ function getUsername(){
 function getPassword(){
 	return "password";
 }
+
+const commandLine = document.getElementById('commandLine');
+commandLine.onkeypress = handleCommand;
+
+socket.on("chat message", function(msg){
+	let li = document.createElement("li")
+	li.append(msg);
+	document.getElementById("messageLog").append(li);
+});
