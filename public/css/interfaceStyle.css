@@ -1,5 +1,6 @@
 :root {
   --commandLineHeight: 31px;
+  --promptHeight: 31px;
 }
 
 * { 
@@ -21,7 +22,7 @@ html, body, #outer {
 
 
 .messageLogContainer {  
-	height: calc(100% - var(--commandLineHeight));
+	height: 100%;
 	width:100%;
 	background-color: black;	
 	position:fixed;
@@ -33,7 +34,8 @@ html, body, #outer {
 	margin: 0;
 	height:100%;
 	width:100%;
-	bottom:calc(0px + var(--commandLineHeight));
+	height: calc(100% - var(--commandLineHeight));
+	bottom:var(--commandLineHeight);
 	overflow-y:scroll;
 	display: flex;
  	flex-direction: column-reverse;
@@ -51,13 +53,32 @@ html, body, #outer {
 
 .commandLineContainer {
 	height: var(--commandLineHeight);
-	width:100%;
+	width: 100%;
 	background-color: white;
-	position:fixed;
-	bottom:0px;
+	position: fixed;
+	bottom: 0px;
 }
 
 #commandLine { 
+	background-color: black;
+	color: white;
+	border: 0px;
+	padding: 5px;
+	width: 100%;
+	height: calc(100% - 1px);
+	top: 1px;
+	position: relative;
+}
+
+.promptContainer {  
+	height: calc(var(--promptHeight));
+	width: 100%;
+	background-color: yellow;	
+	position: fixed;
+	bottom:calc(var(--commandLineHeight) - var(--promptHeight))
+}
+
+#prompt {  
 	background-color: black;
 	color: white;
 	border: 0;
@@ -66,6 +87,38 @@ html, body, #outer {
 	height: calc(100% - 1px);
 	top: 1px;
 	position: relative;
+}
+
+@keyframes openPrompt {
+  from   {bottom:calc(var(--commandLineHeight) - var(--promptHeight))}
+  to  {bottom:var(--commandLineHeight)}
+}
+
+@keyframes closePrompt {
+  from  {bottom:var(--commandLineHeight)}
+  to   {bottom:calc(var(--commandLineHeight) - var(--promptHeight))}
+}
+
+@keyframes openPromptMessageLog {
+  from  {
+  		bottom:var(--commandLineHeight);
+  		height:calc(100% - var(--commandLineHeight))
+  	}
+  to  	{
+  		bottom:calc(var(--commandLineHeight) + var(--promptHeight));
+  		height:calc(100% - var(--commandLineHeight) - var(--promptHeight))
+  	}
+}
+
+@keyframes closePromptMessageLog {
+  from 	{
+  		bottom:calc(var(--commandLineHeight) + var(--promptHeight));
+  		height:calc(100% - var(--commandLineHeight) - var(--promptHeight))
+  	}
+  to 	{
+  		bottom:var(--commandLineHeight);
+  		height:calc(100% - var(--commandLineHeight))
+  	}
 }
 
 

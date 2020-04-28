@@ -4,24 +4,25 @@ const app = express();
 const http = require("http").createServer(app);
 var io = require('socket.io')(http);
 
+var mysql = require('mysql');
+
+const commandHandlerModule = require('./commandHandlerModule');
+const promptHandlerModule = require('./promptHandlerModule');
 
 // serve files from the public directory
 app.use(express.static('public'));
 
 io.on('connection', (socket) => {
-	socket.username = "unset";
-
-	socket.emit('client connected');
 	console.log('a user connected');
 
-	socket.on('disconnect', () => {
-		console.log('user disconnected');
-		io.emit('chat message', socket.username + " has disconnected");
-	});
+	socket.username = "unset";
+	socket.emit('client connected');
+	socket.emit('prompt request', "username", "Enter username: ");
 
+	socket.on('disconnect', disconnect);
 	socket.on('command', handleCommand);
-
 	socket.on('usernameEntered', usernameEntered);
+	socket.on('prompt reply', handlePromptReply);
 });
 
 // start the express web server listening on 3000
@@ -35,23 +36,17 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/clientInterface.html');
 });
 
+function disconnect(){
+	console.log('user disconnected');
+	io.emit('chat message', this.username + " has disconnected");
+}
+
 function handleCommand(command){
-  
-  let commandArray = command.split(";");
+	commandHandlerModule.handleCommand(io, this, command);
+}
 
-  let availableCommandArray = ["say"]
-
-  switch(commandArray[0].trim().toLowerCase()){
-  	case "say":
-  		io.emit('chat message', this.username + ": " + commandArray[1]);
-  		break;
-  	case "help":
-  		this.emit('chat message', "the available commands are: " + availableCommandArray);
-  		break;
-  	default:
-  		this.emit('chat message', "invalid command try 'help'");
-  		break;	
-  }
+function handlePromptReply(promptType, promptReply){
+	promptHandlerModule.handlePromptReply(io, this, promptType, promptReply);
 }
 
 function usernameEntered(username){

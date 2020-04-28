@@ -4,6 +4,7 @@
 	"description": "Multi-User Dungeon",
 	"dependencies": {
 		"express": "^4.17.1",
+		"mysql": "^2.18.1",
 		"socket.io": "^2.3.0"
 	}
 }
