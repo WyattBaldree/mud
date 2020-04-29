@@ -63,6 +63,7 @@ function createPromptRequest(promptType, message){
 
 function clientConnected(){
 	printMessageToLog("Successfully connected to server!")
+	createPromptRequest("accountInitialization", "Login or Register?")
 }
 
 socket.on("chat message", printMessageToLog);

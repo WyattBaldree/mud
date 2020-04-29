@@ -82,11 +82,12 @@ html, body, #outer {
 	background-color: black;
 	color: white;
 	border: 0;
-	padding: 5px;
+	padding: 5px 10px;
 	width: 100%;
 	height: calc(100% - 1px);
 	top: 1px;
 	position: relative;
+	line-height: calc(100% + 6px);
 }
 
 @keyframes openPrompt {

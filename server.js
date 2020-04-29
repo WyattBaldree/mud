@@ -4,10 +4,11 @@ const app = express();
 const http = require("http").createServer(app);
 var io = require('socket.io')(http);
 
-var mysql = require('mysql');
-
 const commandHandlerModule = require('./commandHandlerModule');
 const promptHandlerModule = require('./promptHandlerModule');
+const mySqlModule = require('./mySqlModule');
+commandHandlerModule.mySqlModule = mySqlModule;
+promptHandlerModule.mySqlModule = mySqlModule;
 
 // serve files from the public directory
 app.use(express.static('public'));
@@ -17,11 +18,10 @@ io.on('connection', (socket) => {
 
 	socket.username = "unset";
 	socket.emit('client connected');
-	socket.emit('prompt request', "username", "Enter username: ");
+	//socket.emit('prompt request', "username", "Enter username: ");
 
 	socket.on('disconnect', disconnect);
 	socket.on('command', handleCommand);
-	socket.on('usernameEntered', usernameEntered);
 	socket.on('prompt reply', handlePromptReply);
 });
 
@@ -49,10 +49,3 @@ function handlePromptReply(promptType, promptReply){
 	promptHandlerModule.handlePromptReply(io, this, promptType, promptReply);
 }
 
-function usernameEntered(username){
-  this.username = username;
-  if(this.username){
-  	io.emit('chat message', this.username + " has connected");
-  }
-  
-}
