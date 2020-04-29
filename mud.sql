@@ -1,14 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.2
+-- version 5.0.2
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 29, 2020 at 03:36 PM
+-- Generation Time: Apr 29, 2020 at 07:28 PM
 -- Server version: 10.4.11-MariaDB
--- PHP Version: 7.4.1
+-- PHP Version: 7.4.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -34,6 +33,13 @@ CREATE TABLE `characters` (
   `class` varchar(255) NOT NULL DEFAULT 'Default Class',
   `currentRoom` int(255) NOT NULL DEFAULT -1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `characters`
+--
+
+INSERT INTO `characters` (`id`, `name`, `class`, `currentRoom`) VALUES
+(1, 'Fendryn', 'Wizard', -1);
 
 -- --------------------------------------------------------
 
@@ -70,16 +76,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `characters`) VALUES
-(1, 'Wyatt', 'werter', '{\"characters\":[])'),
-(2, 'hello', 'werter', '{\"characters\":[])'),
-(3, 'Deniella', 'rusty', '{\"characters\":[])'),
-(4, 'BroBro', 'Bro', '{\"characters\":[])'),
-(5, 'h', 'jeff', '{\"characters\":[])'),
-(6, 'j', 'j', '{\"characters\":[])'),
-(7, 'k', 'k', '{\"characters\":[])'),
-(8, '', 'h', '{\"characters\":[])'),
-(9, 'Nintin', 'password', '{\"characters\":[])'),
-(10, 'g', '', '{\"characters\":[])');
+(11, 'Banjoman64', 'werter', '1,-1,-1');
 
 --
 -- Indexes for dumped tables
@@ -111,7 +108,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `characters`
 --
 ALTER TABLE `characters`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `rooms`
@@ -123,7 +120,7 @@ ALTER TABLE `rooms`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

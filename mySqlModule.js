@@ -17,8 +17,11 @@ exports.select =  function(selectList, table, where, callback){
 	for(let i = 4; i < arguments.length ; i++){
 		argumentArray.push(arguments[i]);
 	}
-
-	var sql = "SELECT " + selectList + " FROM " + table + " WHERE " + where + ";";
+	let whereStr = "";
+	if(where != ""){
+		whereStr = " WHERE " + where;
+	}
+	var sql = "SELECT " + selectList + " FROM " + table + whereStr + ";";
 
 	let query = con.query(sql, function(err, result){
 		if(err) throw err;

@@ -128,10 +128,7 @@ function loginPasswordCallback(result, password, socket){
 
 		socket.emit('chat message', 'Password accepted.');
 		socket.emit('chat message', "Welcome, " + socket.username + ".");
-		socket.emit('chat message', "Your Characters:");
-		socket.emit('chat message', "Welcome, " + socket.username + ".");
-		socket.emit('chat message', "Welcome, " + socket.username + ".");
-		socket.emit('prompt request', 'characterInitialization', "Which you like to load? (1, 2, 3)");
+		characterSelectScreen(socket);
 	}else{
 		socket.emit('chat message', "Wrong Password.")
 		socket.emit('prompt request', 'loginUsername', "Enter your username: ");
@@ -141,20 +138,22 @@ function loginPasswordCallback(result, password, socket){
 function characterSelectScreen(socket){
 
 	exports.mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(result){
-		let characterIds = result[0].characters.split(",");
 		socket.emit('chat message', "Your Characters:");
-		socket.emit('chat message', "Welcome, " + socket.username + ".");
-		socket.emit('chat message', "Welcome, " + socket.username + ".");
-		socket.emit('chat message', "Welcome, " + socket.username + ".");
-		socket.emit('prompt request', 'characterInitialization', "Which you like to load? (1, 2, 3)");
+
+		let characterIds = result[0].characters.split(",");
+
+		exports.mySqlModule.select("*", "characters", "", function(result){
+			for(let i = 0 ; i < characterIds.length ; i++){
+				if(characterIds[i] == -1){
+					socket.emit('chat message', (i+1) + ") ------------- NEW CHARACTER -------------");
+				}else{
+					let character = result.find(element => element.id == characterIds[i]);
+					socket.emit('chat message', (i+1) + ") Name: " + character.name + " Class: " + character.class);
+				}
+			}
+			socket.emit('prompt request', 'characterInitialization', "Which you like to load? (1, 2, 3)");
+		});
 	});
-
-
-	socket.emit('chat message', "Your Characters:");
-	socket.emit('chat message', "Welcome, " + socket.username + ".");
-	socket.emit('chat message', "Welcome, " + socket.username + ".");
-	socket.emit('chat message', "Welcome, " + socket.username + ".");
-	socket.emit('prompt request', 'characterInitialization', "Which you like to load? (1, 2, 3)");
 }
 
 function characterInitialization(io, socket, promptType, promptReply){
