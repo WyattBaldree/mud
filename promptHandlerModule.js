@@ -14,6 +14,9 @@ exports.handlePromptReply = function(io, socket, promptType, promptReply){
 			break;
 		case "loginPassword":
 			loginPassword(io, socket, promptType, promptReply);
+		case "characterInitialization":
+			characterInitialization(io, socket, promptType, promptReply);
+			break;
 		default:
 			console.log("Prompt type, " + promptType + ", not recognized.");
 			break;	
@@ -121,10 +124,39 @@ function loginPasswordCallback(result, password, socket){
 		socket.userId = result[0].id;
 		socket.username = socket.temp.username;
 
+
+
 		socket.emit('chat message', 'Password accepted.');
 		socket.emit('chat message', "Welcome, " + socket.username + ".");
+		socket.emit('chat message', "Your Characters:");
+		socket.emit('chat message', "Welcome, " + socket.username + ".");
+		socket.emit('chat message', "Welcome, " + socket.username + ".");
+		socket.emit('prompt request', 'characterInitialization', "Which you like to load? (1, 2, 3)");
 	}else{
 		socket.emit('chat message', "Wrong Password.")
 		socket.emit('prompt request', 'loginUsername', "Enter your username: ");
 	}
+}
+
+function characterSelectScreen(socket){
+
+	exports.mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(result){
+		let characterIds = result[0].characters.split(",");
+		socket.emit('chat message', "Your Characters:");
+		socket.emit('chat message', "Welcome, " + socket.username + ".");
+		socket.emit('chat message', "Welcome, " + socket.username + ".");
+		socket.emit('chat message', "Welcome, " + socket.username + ".");
+		socket.emit('prompt request', 'characterInitialization', "Which you like to load? (1, 2, 3)");
+	});
+
+
+	socket.emit('chat message', "Your Characters:");
+	socket.emit('chat message', "Welcome, " + socket.username + ".");
+	socket.emit('chat message', "Welcome, " + socket.username + ".");
+	socket.emit('chat message', "Welcome, " + socket.username + ".");
+	socket.emit('prompt request', 'characterInitialization', "Which you like to load? (1, 2, 3)");
+}
+
+function characterInitialization(io, socket, promptType, promptReply){
+
 }
