@@ -23,8 +23,6 @@ exports.select =  function(selectList, table, where, callback){
 	let query = con.query(sql, function(err, result){
 		if(err) throw err;
 		argumentArray.unshift(result);
-
-		console.log("argumentArray :: " + argumentArray);
 		callback.apply(this, argumentArray);
 	});
 }

@@ -10,7 +10,7 @@
 }
 
 body {
-	font: 13px Helvetica, Arial;
+	font: 15px Helvetica, Arial;
 	color: white;
 }
 
@@ -47,7 +47,7 @@ html, body, #outer {
 	display: flex;
 }
 
-#messageLog li:nth-child(odd) { 
+#messageLog li:nth-last-child(odd) { 
 	background: #111; 
 }
 
