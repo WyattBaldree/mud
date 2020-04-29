@@ -20,12 +20,14 @@ exports.handlePromptReply = function(io, socket, promptType, promptReply){
 			}
 			break;
 		case "regUsername":	
-			exports.mySqlModule.checkUsername(promptReply, socket, regUsername);
+			
+			exports.mySqlModule.select("*", "users", "username = '" + promptReply + "'", regUsername, promptReply, socket);
 			break;
 		case "regPassword":
 			if(true){ //if promptReply is a valid password
 				socket.temp.password = promptReply;
-				exports.mySqlModule.registerAccount(socket.temp.username, socket.temp.password);
+
+				exports.mySqlModule.insert("users", "username, password", socket.temp.username, socket.temp.password);
 			}else{
 				socket.emit('chat message', "Invalid Password")
 				socket.emit('prompt request', 'regPassword', "Register your password: ");
@@ -39,8 +41,9 @@ exports.handlePromptReply = function(io, socket, promptType, promptReply){
 
 
 
-function regUsername(valid, username, socket){
-	if(valid){ //if promptReply is a valid username
+function regUsername(result, username, socket){
+	console.log("sfsdfasdf :: "+username
+	if(result.length <= 0){ //if promptReply is a valid username
 		socket.temp.username = username;
 		socket.emit('prompt request', 'regPassword', "Register your password: ");
 	}else{

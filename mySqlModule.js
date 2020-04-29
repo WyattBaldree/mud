@@ -12,30 +12,32 @@ con.connect(function(err) {
 	console.log("Connected to mysql!");
 });
 
-exports.registerAccount = function(username, password){
-	console.log("account created");
-	console.log("username: " + username);
-	console.log("password: " + password);
-  	insert("users", "username, password", username, password);
-}
+exports.select =  function(selectList, table, where, callback){
+	let argumentArray = [];
+	for(let i = 4; i < arguments.length ; i++){
+		argumentArray.push(arguments[i]);
+	}
 
-exports.checkUsername = function(username, socket, callback){
-	var sql = "SELECT * FROM users WHERE username = '" + username + "';";
+	var sql = "SELECT " + selectList + " FROM " + table + " WHERE " + where + ";";
+
 	let query = con.query(sql, function(err, result){
 		if(err) throw err;
-		callback(!(result.length > 0), username, socket);
+		argumentArray.unshift(result);
+
+		console.log("argumentArray :: " + argumentArray);
+		callback.apply(this, argumentArray);
 	});
 }
 
-function insert(table, column, variable){
+exports.insert = function(table, column, variable){
 	let valueToInsert = variable;
 	for(let i = 3; i < arguments.length ; i++){
 		valueToInsert += "','" + arguments[i];
 	}
 	var sql =  "insert into " + table + "(" + column + ")" + " values ('" + valueToInsert + "');";
 	con.query(sql, function (err, result) {
-	if (err) throw err;
-	console.log("1 record inserted");
+		if (err) throw err;
+		console.log("1 record inserted");
 	});
 }
 
