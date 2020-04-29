@@ -48,7 +48,7 @@ html, body, #outer {
 }
 
 #messageLog li:nth-last-child(odd) { 
-	background: #111; 
+	background: #0b0b0b
 }
 
 .commandLineContainer {
@@ -73,7 +73,7 @@ html, body, #outer {
 .promptContainer {  
 	height: calc(var(--promptHeight));
 	width: 100%;
-	background-color: yellow;	
+	background-color: orange;	
 	position: fixed;
 	bottom:calc(var(--commandLineHeight) - var(--promptHeight))
 }
@@ -83,12 +83,15 @@ html, body, #outer {
 	color: white;
 	border: 0;
 	padding: 5px 10px;
-	width: 100%;
+	width: calc(100% - 2px);
 	height: calc(100% - 1px);
 	top: 1px;
+	left: 1px;
 	position: relative;
-	line-height: calc(100% + 6px);
+	line-height: calc(100% + 7px);
 }
+
+
 
 @keyframes openPrompt {
   from   {bottom:calc(var(--commandLineHeight) - var(--promptHeight))}
