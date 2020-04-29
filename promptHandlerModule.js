@@ -9,6 +9,11 @@ exports.handlePromptReply = function(io, socket, promptType, promptReply){
 		case "regPassword":
 			regPassword(io, socket, promptType, promptReply);
 			break;
+		case "loginUsername":
+			loginUsername(io, socket, promptType, promptReply);
+			break;
+		case "loginPassword":
+			loginPassword(io, socket, promptType, promptReply);
 		default:
 			console.log("Prompt type, " + promptType + ", not recognized.");
 			break;	
@@ -18,6 +23,12 @@ exports.handlePromptReply = function(io, socket, promptType, promptReply){
 function regAccount(io, socket, promptType, promptReply){
 	switch(promptReply.toLowerCase()){
 		case "login":
+			socket.temp = {
+				username: "",
+				password: ""
+			};
+			socket.emit('chat message', 'Login started.');
+			socket.emit('prompt request', 'loginUsername', "Enter your username: ");
 			break;
 		case "r":
 		case "register":
@@ -36,7 +47,9 @@ function regAccount(io, socket, promptType, promptReply){
 
 function regUsername(io, socket, promptType, promptReply){
 	if(!isUsernameValid(promptReply)){
-		socket.emit('chat message', 'Username must be shorter than 20 characters and contain none of the following: ~`!@#$%^&*+=-[]\';,\\/{}|\":<>?()._');
+		socket.emit('chat message', 'Username must be at least 3 characters long.');
+		socket.emit('chat message', 'Username must be at most 20 characters long.');
+		socket.emit('chat message', 'Username must contain none of the following: ~`!@#$%^&*+=-[]\';,\\/{}|\":<>?()._');
 		socket.emit('prompt request', 'regUsername', "Register your username: ");
 	}
 	else{
@@ -69,5 +82,49 @@ function regPassword(io, socket, promptType, promptReply){
 	}else{
 		socket.emit('chat message', "Invalid Password")
 		socket.emit('prompt request', 'regPassword', "Register your password: ");
+	}
+}
+
+function loginUsername(io, socket, promptType, promptReply){
+	if(!isUsernameValid(promptReply)){
+		socket.emit('chat message', 'Username must be at least 3 characters long.');
+		socket.emit('chat message', 'Username must be at most 20 characters long.');
+		socket.emit('chat message', 'Username must contain none of the following: ~`!@#$%^&*+=-[]\';,\\/{}|\":<>?()._');
+		socket.emit('prompt request', 'loginUsername', "Enter your username: ");
+	}
+	else{
+		exports.mySqlModule.select("*", "users", "username = '" + promptReply + "'", loginUsernameCallback, promptReply, socket);
+	}
+}
+
+function loginUsernameCallback(result, username, socket){
+	if(result.length > 0){ //if promptReply is a valid username
+		socket.temp.username = username;
+		socket.emit('chat message', 'Username, '+ username + ', accepted.');
+		socket.emit('prompt request', 'loginPassword', "Enter your password: ");
+	}else{
+		socket.emit('chat message', "Username does not exist.")
+		socket.emit('prompt request', 'loginUsername', "Enter your username: ");
+	}
+}
+
+function loginPassword(io, socket, promptType, promptReply){
+
+	let where = "username = '" + socket.temp.username + "' AND password = '" + promptReply +"'";
+	exports.mySqlModule.select("*", "users", where, loginPasswordCallback, promptReply, socket);
+	
+}
+
+function loginPasswordCallback(result, password, socket){
+	if(result.length > 0){ //if the account exists.
+		socket.temp.password = password;
+		socket.userId = result[0].id;
+		socket.username = socket.temp.username;
+
+		socket.emit('chat message', 'Password accepted.');
+		socket.emit('chat message', "Welcome, " + socket.username + ".");
+	}else{
+		socket.emit('chat message', "Wrong Password.")
+		socket.emit('prompt request', 'loginUsername', "Enter your username: ");
 	}
 }
