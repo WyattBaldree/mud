@@ -42,6 +42,7 @@ html, body, #outer {
 	word-break: break-all;
 	display: flex;
  	flex-direction: column-reverse;
+	white-space: pre-wrap;
 }
 
 #messageLog li { 

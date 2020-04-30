@@ -44,7 +44,28 @@ function printMessageToLog(msg){
 	}
 
 	let li = document.createElement("li")
-	li.append(msg);
+
+	let regex = /(<br>|<b>|<strong>|<i>|<em>|<del>|<ins>|<sub>|<sup>)/gi;
+	let messageMinusCommands = msg.split(regex);
+	console.log(msg);
+	console.log(messageMinusCommands);
+
+	let finalMsg = "";
+
+	for(let i = 0 ; i < messageMinusCommands.length ; i++){
+
+		if(!/^(<br>|<b>|<strong>|<i>|<em>|<del>|<ins>|<sub>|<sup>)$/gi.test(messageMinusCommands[i])){
+			messageMinusCommands[i] = messageMinusCommands[i].replace(/&/g, "&amp;");
+			messageMinusCommands[i] = messageMinusCommands[i].replace(/</g, "&lt;");
+			messageMinusCommands[i] = messageMinusCommands[i].replace(/>/g, "&gt;");
+		}
+
+		finalMsg = finalMsg + messageMinusCommands[i];
+	}
+
+	console.log(finalMsg);
+
+	li.innerHTML = finalMsg;
 	document.getElementById("messageLog").prepend(li);
 
 	if(enterPress || isAtBottom){
