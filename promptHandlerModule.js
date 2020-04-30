@@ -14,11 +14,15 @@ exports.handlePromptReply = function(io, socket, promptType, promptReply){
 			break;
 		case "loginPassword":
 			loginPassword(io, socket, promptType, promptReply);
+			break;
 		case "characterInitialization":
 			characterInitialization(io, socket, promptType, promptReply);
 			break;
-		case "characterCreationName":
-			characterCreationName(io, socket, promptType, promptReply);
+		case "characterCreationFirstName":
+			characterCreationFirstName(io, socket, promptType, promptReply);
+			break;
+		case "characterCreationLastName":
+			characterCreationLastName(io, socket, promptType, promptReply);
 			break;
 		case "characterCreationRace":
 			characterCreationRace(io, socket, promptType, promptReply);
@@ -67,9 +71,11 @@ function regAccount(io, socket, promptType, promptReply){
 
 function regUsername(io, socket, promptType, promptReply){
 	if(!isUsernameValid(promptReply)){
-		socket.emit('chat message', 'Username must be at least 3 characters long.');
-		socket.emit('chat message', 'Username must be at most 20 characters long.');
-		socket.emit('chat message', 'Username must contain none of the following: ~`!@#$%^&*+=-[]\';,\\/{}|\":<>?()._');
+		socket.emit('chat message', "Username Invalid. Username requires:<br>" + 
+									">at least 3 characters<br>" +
+									">no more than 16 characters<br>" +
+									">none of the following: ~`!@#$%^&*+=-[]\';,\\/{}|\":<>?()._" 
+					);
 		socket.emit('prompt request', 'regUsername', "Register your username: ");
 	}
 	else{
@@ -89,11 +95,12 @@ function regUsernameCallback(result, username, socket){
 }
 
 function isUsernameValid(username){
-	return !/[\s~`!@#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?()\._]/g.test(username) && username.length < 20 && username.length >=3;
+	return !/[\s~`!@#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?()\._]/g.test(username) && username.length < 16 && username.length >=3;
 }
 
 function isPasswordValid(password){
-	let passwordRequire = new RegExp('((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W_]).{6,})'); //Password requires at least 1 lower case character, 1 upper case character, 1 number, 1 special character and must be at least 6 characters and at most 18
+	//Password requires at least 1 lower case character, 1 upper case character, 1 number, 1 special character and must be at least 6 characters and at most 18
+	let passwordRequire = new RegExp('((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W_]).{6,})'); 
 	if(password.match(passwordRequire) && password.length <=18){
 		return true;
 	}
@@ -107,19 +114,19 @@ function regPassword(io, socket, promptType, promptReply){
 		socket.emit('chat message', "Account successfully created.")
 		socket.emit('prompt request', 'accountInitialization', "Login or Register?");
 	}else{
-		socket.emit('chat message', "Password Invalid");
-		socket.emit('chat message', "Password requires at least 1 lower case character and 1 upper case character.");
-		socket.emit('chat message', "Password requires at least 1 number and 1 special character.");
-		socket.emit('chat message', "Password must be at least 6 characters long and at most 18 characters long.");
+		socket.emit('chat message', "Password Invalid. Password requires:<br>" + 
+									">at least 1 lower case character<br>" +
+									">at least 1 upper case character<br>" +
+									">at least 6 characters<br>" +
+									">no more than 18 characters"
+					);
 		socket.emit('prompt request', 'regPassword', "Register your password: ");
 	}
 }
 
 function loginUsername(io, socket, promptType, promptReply){
 	if(!isUsernameValid(promptReply)){
-		socket.emit('chat message', 'Username must be at least 3 characters long.');
-		socket.emit('chat message', 'Username must be at most 20 characters long.');
-		socket.emit('chat message', 'Username must contain none of the following: ~`!@#$%^&*+=-[]\';,\\/{}|\":<>?()._');
+		socket.emit('chat message', "Username Invalid.");
 		socket.emit('prompt request', 'loginUsername', "Enter your username: ");
 	}
 	else{
@@ -189,64 +196,150 @@ function characterSelectScreen(socket){
 }
 
 function characterInitialization(io, socket, promptType, promptReply){
-	console.log(socket.userId);
-	exports.mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(result){
-		let characterIds = result[0].characters.split(",");
-		let targetCharacterId = characterIds[promptReply];
-		if(targetCharacterId == -1){
-			//character creation
-			socket.emit('chat message', "Character creation started.");
-			socket.emit('prompt request', 'characterCreationName', "What is your name?");
-		}else{
-			//load character
-			socket.emit('chat message', "Loading character.");
-		}
-	});
+	//regex expression to check if it's 1,2,3
+	let regex = /^[123]$/;
+	if (regex.test(promptReply)){
+		socket.currentCharacter = promptReply;
+		exports.mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(result){
+			let characterIds = result[0].characters.split(",");
+			let targetCharacterId = characterIds[promptReply];
+			if(targetCharacterId == -1){
+				//character creation
+				socket.emit('chat message', "Character creation started.");
+				socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?");
+			}else{
+				//load character
+				socket.emit('chat message', "Loading character.");
+			}
+		});
+	}else{
+		socket.emit('chat message', "Please enter 1, 2, or 3.");
+		characterSelectScreen(socket);
+	}
+	
 }
 
-function characterCreationName(io, socket, promptType, promptReply){
-	socket.temp.name = promptReply;
-	confirmPrompt('confirm class? (Y/N)', 
-		function(){ 
-			socket.emit('prompt request', 'characterCreationRace', "What is your race?");
+function characterCreationFirstName(io, socket, promptType, promptReply){
+	socket.temp.firstname = promptReply;
+	if(isUsernameValid(socket.temp.firstname)){ //need isCharacterName regex to check for numbers and symbols except hyphen
+		confirmPrompt(socket, 'Do you really want your first name to be ' + socket.temp.firstname + '? (Y/N)', 
+			function(){ 
+				socket.emit('prompt request', 'characterCreationLastName', "What is your last name?");
+			}, 
+			function(){
+				socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?");
+			}
+		);
+	}else{
+		socket.emit('chat message', "First Name is invalid.<br>" +
+					">First name should be between 0 and 16 characters<br>" +
+					">Should only contain letters and hyphen"
+					);
+		socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?");
+	}
+}
+
+function characterCreationLastName(io, socket, promptType, promptReply){
+	socket.temp.lastname = promptReply;
+	if(isUsernameValid(socket.temp.lastname)){ //need isCharacterName regex to check for numbers and symbols except hyphen
+		confirmPrompt(socket, 'Do you really want your last name to be ' + socket.temp.lastname + '? (Y/N)', 
+			function(){ 
+				socket.emit('prompt request', 'characterCreationRace', "What is your race?");
 		}, 
-		function(){
-			socket.emit('prompt request', 'characterCreationName', "What is your name?");
-		}
-	);
+			function(){
+				socket.emit('prompt request', 'characterCreationLastName', "What is your last name?");
+			}
+		);
+	}else{
+		socket.emit('chat message', "Last Name is invalid.<br>" +
+					">Last name should be between 0 and 16 characters<br>" +
+					">Should only contain letters and hyphen"
+					);
+		socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?");
+	}
 }
 
 function characterCreationRace(io, socket, promptType, promptReply){
-	socket.temp.race = promptReply;
-	
-	confirmPrompt('confirm class? (Y/N)', 
-		function(){ 
-			socket.emit('prompt request', 'characterCreationClass', "What is your class?");
-		}, 
-		function(){
-			socket.emit('prompt request', 'characterCreationRace', "What is your race?");
-		}
-	);
+	exports.mySqlModule.select("*", "races",  "name = '" + promptReply + "'", function(result, socket){
+		if(result.length > 0){
+			socket.temp.raceid = result[0].id;
+			socket.temp.race = promptReply;
+			confirmPrompt(socket, 'Are you okay with being a(n) ' + socket.temp.race + '? (Y/N)', 
+				function(){ 
+					socket.emit('prompt request', 'characterCreationClass', "What is your class?");
+				}, 
+				function(){
+					socket.emit('prompt request', 'characterCreationRace', "What is your race?");
+				}
+			);
+		}else{
+			socket.emit('chat message', "Chararacter Race invalid");
+			exports.mySqlModule.select("*", "races",  "", function(result, socket){
+				let availableRaces = result[0].name + "";
+				for(let i = 1; i < result.length; i++){
+					availableRaces += ", " + result[i].name;
+				}
+				socket.emit('chat message', "Available Chararacter Races: " + availableRaces);
+				socket.emit('prompt request', 'characterCreationRace', "What is your race?");
+			}, socket);
+		}	
+	}, socket);
 }
 
 function characterCreationClass(io, socket, promptType, promptReply){
-	socket.temp.class = promptReply;
-	confirmPrompt('confirm class? (Y/N)',
+	exports.mySqlModule.select("*", "classes",  "name = '" + promptReply + "'", function(result, socket){
+		if(result.length > 0){
+			socket.temp.classid = result[0].id;
+			socket.temp.class = promptReply;
+			confirmPrompt(socket, 'Are you okay with being a(n) ' + socket.temp.class + '? (Y/N)', 
+				function(){ 
+					characterCreationComplete(socket);
+				}, 
+				function(){
+					socket.emit('prompt request', 'characterCreationClass', "What is your class?")
+				}
+			);
+		}else{
+			socket.emit('chat message', "Chararacter Class invalid");
+			exports.mySqlModule.select("*", "classes",  "", function(result, socket){
+				let availableClasses = result[0].name + "";
+				for(let i = 1; i < result.length; i++){
+					availableClasses += ", " + result[i].name;
+				}
+				socket.emit('chat message', "Available Character Classes: " + availableClasses);
+				socket.emit('prompt request', 'characterCreationClass', "What is your class?")
+			}, socket);
+		}	
+	}, socket);
+}
+
+function characterCreationComplete(socket){
+	socket.emit('chat message', "first name: " + socket.temp.firstname + "<br>last name: " + socket.temp.lastname + "<br>race: " + socket.temp.race + "<br>class: " + socket.temp.class);
+	confirmPrompt(socket, 'Are you okay with this? (Y/N)',
 		function(){
-			characterCreationComplete();
+			socket.emit('chat message', "character function lol");
+			//createCharacter(socket); //inserts crap into mysql then references character initialization screen
 		}, 
 		function(){
-			socket.emit('prompt request', 'characterCreationClass', "What is your class?")
+			socket.emit('chat message', "Character creation restarted.");
+			socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?");
 		}
 	);
 }
 
-function characterCreationComplete(){
-	socket.emit('chat message', "name: " + socket.temp.name + "<br> race: " + socket.temp.race + "<br> class: " + socket.temp.class);
+function createCharacter(socket){
+	//insert socket.temp.firstname, socket.temp.lastname, socket.temp.raceid, socket.temp.classid into user
+
+	socket.mySqlModule.insert("characters", "firstname, lastname, race, class", socket.temp.firstname, socket.temp.lastname, socket.temp.raceid, socket.temp.classid);
+	//find associated character id
+	
+	//change associated characters(1,-1,-1) in users with characters-id
+	//go back to character initialization
+	characterSelectScreen(socket);
 }
 
 function confirm(io, socket, promptType, promptReply){
-	switch(promptReply.toLowercase()){
+	switch(promptReply.toLowerCase()){
 		case "y":
 		case "yes":
 			socket.temp.yesCallback(io, socket);
@@ -261,7 +354,7 @@ function confirm(io, socket, promptType, promptReply){
 	}
 }
 
-function confirmPrompt(message, yesCallback, noCallback){
+function confirmPrompt(socket, message, yesCallback, noCallback){
 	socket.temp.yesCallback = yesCallback;
 	socket.temp.noCallback = noCallback;
 	socket.temp.confirmMessage = message;

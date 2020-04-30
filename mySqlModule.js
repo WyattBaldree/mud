@@ -30,7 +30,7 @@ exports.select =  function(selectList, table, where, callback){
 	});
 }
 
-exports.insert = function(table, column, variable){
+exports.insert = function(table, column, variables){
 	let valueToInsert = variable;
 	for(let i = 3; i < arguments.length ; i++){
 		valueToInsert += "','" + arguments[i];
@@ -38,6 +38,7 @@ exports.insert = function(table, column, variable){
 	var sql =  "insert into " + table + "(" + column + ")" + " values ('" + valueToInsert + "');";
 	con.query(sql, function (err, result) {
 		if (err) throw err;
+		socket.temp.insertedId = result[0].id
 		console.log("1 record inserted");
 	});
 }
