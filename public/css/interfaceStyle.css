@@ -39,12 +39,14 @@ html, body, #outer {
 	overflow-y:scroll;
 	display: flex;
  	flex-direction: column-reverse;
+	white-space: pre-wrap;
 }
 
 #messageLog li { 
 	padding: 5px 10px;
 	width: 100%;
 	display: flex;
+	white-space: pre-wrap;
 }
 
 #messageLog li:nth-last-child(odd) { 
