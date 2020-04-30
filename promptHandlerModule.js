@@ -17,6 +17,18 @@ exports.handlePromptReply = function(io, socket, promptType, promptReply){
 		case "characterInitialization":
 			characterInitialization(io, socket, promptType, promptReply);
 			break;
+		case "characterCreationName":
+			characterCreationName(io, socket, promptType, promptReply);
+			break;
+		case "characterCreationRace":
+			characterCreationRace(io, socket, promptType, promptReply);
+			break;
+		case "characterCreationClass":
+			characterCreationClass(io, socket, promptType, promptReply);
+			break;
+		case "confirm":
+			confirm(io, socket, promptType, promptReply);
+			break;
 		default:
 			console.log("Prompt type, " + promptType + ", not recognized.");
 			break;	
@@ -164,21 +176,87 @@ function characterSelectScreen(socket){
 				}
 			}
 			socket.emit('chat message', charactersInfo);
-			socket.emit('prompt request', 'characterInitialization', "Which you like to load? (1, 2, 3)");
+			socket.emit('prompt request', 'characterInitialization', "Which would you like to load? (1, 2, 3)");
 		});
 	});
 }
 
 function characterInitialization(io, socket, promptType, promptReply){
+	console.log(socket.userId);
 	exports.mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(result){
 		let characterIds = result[0].characters.split(",");
 		let targetCharacterId = characterIds[promptReply];
 		if(targetCharacterId == -1){
 			//character creation
 			socket.emit('chat message', "Character creation started.");
+			socket.emit('prompt request', 'characterCreationName', "What is your name?");
 		}else{
 			//load character
 			socket.emit('chat message', "Loading character.");
 		}
 	});
+}
+
+function characterCreationName(io, socket, promptType, promptReply){
+	socket.temp.name = promptReply;
+	confirmPrompt('confirm class? (Y/N)', 
+		function(){ 
+			socket.emit('prompt request', 'characterCreationRace', "What is your race?");
+		}, 
+		function(){
+			socket.emit('prompt request', 'characterCreationName', "What is your name?");
+		}
+	);
+}
+
+function characterCreationRace(io, socket, promptType, promptReply){
+	socket.temp.race = promptReply;
+	
+	confirmPrompt('confirm class? (Y/N)', 
+		function(){ 
+			socket.emit('prompt request', 'characterCreationClass', "What is your class?");
+		}, 
+		function(){
+			socket.emit('prompt request', 'characterCreationRace', "What is your race?");
+		}
+	);
+}
+
+function characterCreationClass(io, socket, promptType, promptReply){
+	socket.temp.class = promptReply;
+	confirmPrompt('confirm class? (Y/N)',
+		function(){
+			characterCreationComplete();
+		}, 
+		function(){
+			socket.emit('prompt request', 'characterCreationClass', "What is your class?")
+		}
+	);
+}
+
+function characterCreationComplete(){
+	socket.emit('chat message', "name: " + socket.temp.name + "<br> race: " + socket.temp.race + "<br> class: " + socket.temp.class);
+}
+
+function confirm(io, socket, promptType, promptReply){
+	switch(promptReply.toLowercase()){
+		case "y":
+		case "yes":
+			socket.temp.yesCallback(io, socket);
+		break;
+		case "n":
+		case "no":
+			socket.temp.noCallback(io, socket);
+		break;
+		default:
+		socket.emit('chat message', promptReply + ' is an invalid response. <br> >Try Y/N');
+		socket.emit('prompt request', 'confirm', socket.temp.confirmMessage);
+	}
+}
+
+function confirmPrompt(message, yesCallback, noCallback){
+	socket.temp.yesCallback = yesCallback;
+	socket.temp.noCallback = noCallback;
+	socket.temp.confirmMessage = message;
+	socket.emit('prompt request', 'confirm', message);
 }
