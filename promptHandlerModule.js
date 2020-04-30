@@ -180,5 +180,5 @@ function characterInitialization(io, socket, promptType, promptReply){
 			//load character
 			socket.emit('chat message', "Loading character.");
 		}
-	}
+	});
 }
