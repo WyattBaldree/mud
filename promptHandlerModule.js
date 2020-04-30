@@ -37,6 +37,10 @@ exports.handlePromptReply = function(io, socket, promptType, promptReply){
 
 function regAccount(io, socket, promptType, promptReply){
 	switch(promptReply.toLowerCase()){
+		case "d":
+		case "debug":
+			//automatically log in as a debug character.
+			login(socket, 0);
 		case "l":
 		case "login":
 			socket.temp = {
@@ -143,19 +147,22 @@ function loginPassword(io, socket, promptType, promptReply){
 
 function loginPasswordCallback(result, password, socket){
 	if(result.length > 0){ //if the account exists.
-		socket.temp.password = password;
-		socket.userId = result[0].id;
-		socket.username = socket.temp.username;
-
-
-
-		socket.emit('chat message', 'Password accepted.');
-		socket.emit('chat message', "Welcome, " + socket.username + ".");
-		characterSelectScreen(socket);
+		login(socket, result[0].id);
 	}else{
 		socket.emit('chat message', "Wrong Password.")
 		socket.emit('prompt request', 'loginUsername', "Enter your username: ");
 	}
+}
+
+function login(socket, userId){
+	exports.mySqlModule.select("*", "users", "id = '" + userId + "'", function(result, socket){
+		socket.userId = result[0].id;
+		socket.username = result[0].username;
+
+		socket.emit('chat message', 'Password accepted.');
+		socket.emit('chat message', "Welcome, " + socket.username + ".");
+		characterSelectScreen(socket);
+	}, socket);
 }
 
 function characterSelectScreen(socket){

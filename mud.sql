@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 29, 2020 at 07:28 PM
+-- Generation Time: Apr 30, 2020 at 07:09 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.4
 
@@ -39,6 +39,7 @@ CREATE TABLE `characters` (
 --
 
 INSERT INTO `characters` (`id`, `name`, `class`, `currentRoom`) VALUES
+(0, 'Default Character', 'Default Class', -1),
 (1, 'Fendryn', 'Wizard', -1);
 
 -- --------------------------------------------------------
@@ -76,7 +77,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `characters`) VALUES
-(11, 'Banjoman64', 'werter', '1,-1,-1');
+(0, 'Default', 'Default1!', '0,-1,-1'),
+(1, 'Banjoman64', 'werter@5S', '1,-1,-1');
 
 --
 -- Indexes for dumped tables
@@ -108,7 +110,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `characters`
 --
 ALTER TABLE `characters`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `rooms`
@@ -120,7 +122,7 @@ ALTER TABLE `rooms`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
