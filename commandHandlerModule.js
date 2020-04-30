@@ -2,7 +2,7 @@ exports.handleCommand = function(io, socket, command){
 	let commandArray = command.split(";");
 
 	switch(commandArray[0].trim().toLowerCase()){
-		case: "s":
+		case "s":
 		case "say":
 			io.emit('chat message', socket.username + ": " + commandArray[1]);
 			break;
