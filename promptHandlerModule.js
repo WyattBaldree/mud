@@ -25,6 +25,7 @@ exports.handlePromptReply = function(io, socket, promptType, promptReply){
 
 function regAccount(io, socket, promptType, promptReply){
 	switch(promptReply.toLowerCase()){
+		case "l":
 		case "login":
 			socket.temp = {
 				username: "",
@@ -72,18 +73,28 @@ function regUsernameCallback(result, username, socket){
 }
 
 function isUsernameValid(username){
-	return !/[\s~`!@#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?()\._]/g.test(username) && username.length < 20;
+	return !/[\s~`!@#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?()\._]/g.test(username) && username.length < 20 && username.length >=3;
+}
+
+function isPasswordValid(password){
+	let passwordRequire = new RegExp('((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W_]).{6,})'); //Password requires at least 1 lower case character, 1 upper case character, 1 number, 1 special character and must be at least 6 characters and at most 18
+	if(password.match(passwordRequire) && password.length <=18){
+		return true;
+	}
 }
 
 function regPassword(io, socket, promptType, promptReply){
-	if(true){ //if promptReply is a valid password
+	if(isPasswordValid(promptReply)){ //if promptReply is a valid password
 		socket.temp.password = promptReply;
 		exports.mySqlModule.insert("users", "username, password", socket.temp.username, socket.temp.password);
 		socket.emit('chat message', 'Password accepted.');
 		socket.emit('chat message', "Account successfully created.")
 		socket.emit('prompt request', 'accountInitialization', "Login or Register?");
 	}else{
-		socket.emit('chat message', "Invalid Password")
+		socket.emit('chat message', "Password Invalid");
+		socket.emit('chat message', "Password requires at least 1 lower case character and 1 upper case character.");
+		socket.emit('chat message', "Password requires at least 1 number and 1 special character.");
+		socket.emit('chat message', "Password must be at least 6 characters long and at most 18 characters long.");
 		socket.emit('prompt request', 'regPassword', "Register your password: ");
 	}
 }

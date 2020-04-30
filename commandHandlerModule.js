@@ -9,10 +9,10 @@ exports.handleCommand = function(io, socket, command){
 			rollDice(io, socket, commandArray);
 			break;
 		case "help":
-			socket.emit('chat message', "HELP:");
-			socket.emit('chat message', "> To use a command, type \"<command>;<param 1>;<param 2>;...\"");
-			socket.emit('chat message', "> For example: say;hello everyone");
-			socket.emit('chat message', "> The available commands are: say, dice");
+			socket.emit('chat message', "HELP: \n" + 
+							            "> To use a command, type \"<command>;<param 1>;<param 2>;...\" \n" + 
+							            "> For example: say;hello everyone\n" + 
+							            "> The available commands are: say, dice");
 			break;
 		default:
 			socket.emit('chat message', "invalid command try 'help'");
