@@ -138,24 +138,36 @@ function loginPasswordCallback(result, password, socket){
 function characterSelectScreen(socket){
 
 	exports.mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(result){
-		socket.emit('chat message', "Your Characters:");
 
 		let characterIds = result[0].characters.split(",");
 
 		exports.mySqlModule.select("*", "characters", "", function(result){
+			let charactersInfo = "Your characters: ";
 			for(let i = 0 ; i < characterIds.length ; i++){
 				if(characterIds[i] == -1){
-					socket.emit('chat message', (i+1) + ") ------------- NEW CHARACTER -------------");
+					charactersInfo = charactersInfo + "<br>" + (i+1) + ") ------------- NEW CHARACTER -------------"
+					
 				}else{
 					let character = result.find(element => element.id == characterIds[i]);
-					socket.emit('chat message', (i+1) + ") Name: " + character.name + " Class: " + character.class);
+					charactersInfo = charactersInfo + "<br>" + (i+1) + ") Name: " + character.name + " Class: " + character.class;
 				}
 			}
+			socket.emit('chat message', charactersInfo);
 			socket.emit('prompt request', 'characterInitialization', "Which you like to load? (1, 2, 3)");
 		});
 	});
 }
 
 function characterInitialization(io, socket, promptType, promptReply){
-
+	exports.mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(result){
+		let characterIds = result[0].characters.split(",");
+		let targetCharacterId = characterIds[promptReply];
+		if(targetCharacterId == -1){
+			//character creation
+			socket.emit('chat message', "Character creation started.");
+		}else{
+			//load character
+			socket.emit('chat message', "Loading character.");
+		}
+	}
 }
