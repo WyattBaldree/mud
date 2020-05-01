@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.0.1
+-- version 4.9.2
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 01, 2020 at 12:56 AM
--- Server version: 10.4.6-MariaDB
--- PHP Version: 7.3.9
+-- Generation Time: May 01, 2020 at 09:31 AM
+-- Server version: 10.4.11-MariaDB
+-- PHP Version: 7.4.1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -30,8 +30,8 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `characters` (
   `id` int(11) NOT NULL,
-  `firstname` varchar(255) NOT NULL DEFAULT 'New First Name',
-  `lastname` varchar(255) NOT NULL DEFAULT 'New Last Name',
+  `firstName` varchar(255) NOT NULL DEFAULT 'New First Name',
+  `lastName` varchar(255) NOT NULL DEFAULT 'New Last Name',
   `race` int(11) NOT NULL DEFAULT 0,
   `class` int(11) NOT NULL DEFAULT 0,
   `currentRoom` int(255) NOT NULL DEFAULT -1
@@ -41,9 +41,12 @@ CREATE TABLE `characters` (
 -- Dumping data for table `characters`
 --
 
-INSERT INTO `characters` (`id`, `firstname`, `lastname`, `race`, `class`, `currentRoom`) VALUES
+INSERT INTO `characters` (`id`, `firstName`, `lastName`, `race`, `class`, `currentRoom`) VALUES
 (0, 'Default Character', '', 0, 0, -1),
-(1, 'Fendryn', 'Telvanni', 1, 1, -1);
+(1, 'Fendryn', 'Telvanni', 1, 1, -1),
+(5, 'Jeff', 'Barus', 0, 0, 0),
+(6, 'Jeff', 'Barus', 0, 0, 0),
+(7, 'deathwing', 'wing', 1, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -52,7 +55,7 @@ INSERT INTO `characters` (`id`, `firstname`, `lastname`, `race`, `class`, `curre
 --
 
 CREATE TABLE `classes` (
-  `1` int(11) NOT NULL,
+  `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL DEFAULT 'New Class',
   `attributeBonuses` varchar(255) NOT NULL DEFAULT '0,0,0,0,0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -61,7 +64,7 @@ CREATE TABLE `classes` (
 -- Dumping data for table `classes`
 --
 
-INSERT INTO `classes` (`1`, `name`, `attributeBonuses`) VALUES
+INSERT INTO `classes` (`id`, `name`, `attributeBonuses`) VALUES
 (0, 'Fighter', '0,0,0,0,0'),
 (1, 'Apprentice', '0,0,0,0,0'),
 (2, 'Acolyte', '0,0,0,0,0'),
@@ -124,9 +127,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `characters`) VALUES
-(0, 'Default', 'Default1!', '0,-1,-1'),
+(0, 'Default', 'Default1!', '0,6,-1'),
 (1, 'Banjoman64', 'werter@5S', '1,-1,-1'),
-(14, 'den', 'Rusty1!', '-1,-1,-1'),
+(14, 'den', 'Rusty1!', '-1,-1,7'),
 (15, 'den2', 'Rusty1!', '-1,-1,-1');
 
 --
@@ -143,7 +146,7 @@ ALTER TABLE `characters`
 -- Indexes for table `classes`
 --
 ALTER TABLE `classes`
-  ADD PRIMARY KEY (`1`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `races`
@@ -171,13 +174,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `characters`
 --
 ALTER TABLE `characters`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `classes`
 --
 ALTER TABLE `classes`
-  MODIFY `1` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `races`

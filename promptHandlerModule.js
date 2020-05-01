@@ -95,7 +95,8 @@ function regUsernameCallback(result, username, socket){
 }
 
 function isUsernameValid(username){
-	return !/[\s~`!@#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?()\._]/g.test(username) && username.length < 16 && username.length >=3;
+	console.log("IS VALID? " + username);
+	return !/[\s~`!@#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?()\._]/g.test(username) && username.length <= 16 && username.length >=3;
 }
 
 function isPasswordValid(password){
@@ -109,7 +110,7 @@ function isPasswordValid(password){
 function regPassword(io, socket, promptType, promptReply){
 	if(isPasswordValid(promptReply)){ //if promptReply is a valid password
 		socket.temp.password = promptReply;
-		exports.mySqlModule.insert("users", "username, password", socket.temp.username, socket.temp.password);
+		exports.mySqlModule.insert("users", "username, password", socket.temp.username + "','" + socket.temp.password, null);
 		socket.emit('chat message', 'Password accepted.');
 		socket.emit('chat message', "Account successfully created.")
 		socket.emit('prompt request', 'accountInitialization', "Login or Register?");
@@ -173,24 +174,24 @@ function login(socket, userId){
 }
 
 function characterSelectScreen(socket){
-
-	exports.mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(result){
-
-		let characterIds = result[0].characters.split(",");
-
-		exports.mySqlModule.select("*", "characters", "", function(result){
-			let charactersInfo = "Your characters: ";
-			for(let i = 0 ; i < characterIds.length ; i++){
-				if(characterIds[i] == -1){
-					charactersInfo = charactersInfo + "<br>" + (i+1) + ") ------------- NEW CHARACTER -------------"
-					
-				}else{
-					let character = result.find(element => element.id == characterIds[i]);
-					charactersInfo = charactersInfo + "<br>" + (i+1) + ") Name: " + character.name + " Class: " + character.class;
+	exports.mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(userResult){
+		exports.mySqlModule.select("*", "characters", "", function(characterResult){
+			exports.mySqlModule.select("*", "classes", "", function(classResult){
+				let characterIds = userResult.find(element => element.id == socket.userId).characters.split(",");
+				let charactersInfo = "Your characters: ";
+				for(let i = 0 ; i < characterIds.length ; i++){
+					if(characterIds[i] == -1){
+						charactersInfo = charactersInfo + "<br>" + (i+1) + ") ------------- NEW CHARACTER -------------";
+					}else{
+						let characterObj = characterResult.find(element => element.id == characterIds[i]);
+						let classObj = classResult.find(element => element.id == characterObj.class);
+						charactersInfo = charactersInfo + "<br>" + (i+1) + ") Name: " + characterObj.firstName + " Class: " + classObj.name;
+					}
 				}
-			}
-			socket.emit('chat message', charactersInfo);
-			socket.emit('prompt request', 'characterInitialization', "Which would you like to load? (1, 2, 3)");
+
+				socket.emit('chat message', charactersInfo);
+				socket.emit('prompt request', 'characterInitialization', "Which would you like to load? (1, 2, 3)");
+			});
 		});
 	});
 }
@@ -202,7 +203,7 @@ function characterInitialization(io, socket, promptType, promptReply){
 		socket.currentCharacter = promptReply;
 		exports.mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(result){
 			let characterIds = result[0].characters.split(",");
-			let targetCharacterId = characterIds[promptReply];
+			let targetCharacterId = characterIds[promptReply-1];
 			if(targetCharacterId == -1){
 				//character creation
 				socket.emit('chat message', "Character creation started.");
@@ -318,7 +319,7 @@ function characterCreationComplete(socket){
 	confirmPrompt(socket, 'Are you okay with this? (Y/N)',
 		function(){
 			socket.emit('chat message', "character function lol");
-			//createCharacter(socket); //inserts crap into mysql then references character initialization screen
+			createCharacter(socket);
 		}, 
 		function(){
 			socket.emit('chat message', "Character creation restarted.");
@@ -329,13 +330,23 @@ function characterCreationComplete(socket){
 
 function createCharacter(socket){
 	//insert socket.temp.firstname, socket.temp.lastname, socket.temp.raceid, socket.temp.classid into user
+	let characterInfo = socket.temp.firstname + "','" +
+						socket.temp.lastname + "','" +
+						socket.temp.raceid + "','" +
+						socket.temp.classid + "','" +
+						0;
+	exports.mySqlModule.insert("characters", "firstname,lastname,race,class,currentRoom", characterInfo, function(insertResult){
+		exports.mySqlModule.select("*", "users",  "id = " + socket.userId, function(userResult){
+			let myCharacters = userResult[0].characters.split(",");
+			myCharacters[socket.currentCharacter-1] = insertResult.insertId;
 
-	socket.mySqlModule.insert("characters", "firstname, lastname, race, class", socket.temp.firstname, socket.temp.lastname, socket.temp.raceid, socket.temp.classid);
+			exports.mySqlModule.update("users", "characters = '" + myCharacters.toString() + "'", "id = '" + socket.userId + "'", function(result){
+				characterSelectScreen(socket);
+			})
+
+		});
+	});
 	//find associated character id
-	
-	//change associated characters(1,-1,-1) in users with characters-id
-	//go back to character initialization
-	characterSelectScreen(socket);
 }
 
 function confirm(io, socket, promptType, promptReply){
