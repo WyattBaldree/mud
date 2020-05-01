@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.2
+-- version 4.9.0.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 01, 2020 at 09:31 AM
--- Server version: 10.4.11-MariaDB
--- PHP Version: 7.4.1
+-- Generation Time: May 01, 2020 at 09:35 PM
+-- Server version: 10.4.6-MariaDB
+-- PHP Version: 7.3.9
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -30,21 +30,20 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `characters` (
   `id` int(11) NOT NULL,
-  `firstName` varchar(255) NOT NULL DEFAULT 'New First Name',
-  `lastName` varchar(255) NOT NULL DEFAULT 'New Last Name',
-  `race` int(11) NOT NULL DEFAULT 0,
-  `class` int(11) NOT NULL DEFAULT 0,
-  `currentRoom` int(255) NOT NULL DEFAULT -1
+  `characters_firstName` varchar(255) NOT NULL DEFAULT 'New First Name',
+  `characters_lastName` varchar(255) NOT NULL DEFAULT 'New Last Name',
+  `characters_race` int(11) NOT NULL DEFAULT 0,
+  `characters_class` int(11) NOT NULL DEFAULT 0,
+  `characters_currentRoom` int(255) NOT NULL DEFAULT -1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `characters`
 --
 
-INSERT INTO `characters` (`id`, `firstName`, `lastName`, `race`, `class`, `currentRoom`) VALUES
+INSERT INTO `characters` (`id`, `characters_firstName`, `characters_lastName`, `characters_race`, `characters_class`, `characters_currentRoom`) VALUES
 (0, 'Default Character', '', 0, 0, -1),
 (1, 'Fendryn', 'Telvanni', 1, 1, -1),
-(5, 'Jeff', 'Barus', 0, 0, 0),
 (6, 'Jeff', 'Barus', 0, 0, 0),
 (7, 'deathwing', 'wing', 1, 0, 0);
 
@@ -56,15 +55,15 @@ INSERT INTO `characters` (`id`, `firstName`, `lastName`, `race`, `class`, `curre
 
 CREATE TABLE `classes` (
   `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL DEFAULT 'New Class',
-  `attributeBonuses` varchar(255) NOT NULL DEFAULT '0,0,0,0,0'
+  `classes_name` varchar(255) NOT NULL DEFAULT 'New Class',
+  `classes_attributeBonuses` varchar(255) NOT NULL DEFAULT '0,0,0,0,0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `classes`
 --
 
-INSERT INTO `classes` (`id`, `name`, `attributeBonuses`) VALUES
+INSERT INTO `classes` (`id`, `classes_name`, `classes_attributeBonuses`) VALUES
 (0, 'Fighter', '0,0,0,0,0'),
 (1, 'Apprentice', '0,0,0,0,0'),
 (2, 'Acolyte', '0,0,0,0,0'),
@@ -78,15 +77,15 @@ INSERT INTO `classes` (`id`, `name`, `attributeBonuses`) VALUES
 
 CREATE TABLE `races` (
   `id` int(11) NOT NULL,
-  `name` varchar(255) DEFAULT 'New Race',
-  `attributeBonuses` varchar(255) NOT NULL DEFAULT '0,0,0,0,0'
+  `races_name` varchar(255) DEFAULT 'New Race',
+  `races_attributeBonuses` varchar(255) NOT NULL DEFAULT '0,0,0,0,0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `races`
 --
 
-INSERT INTO `races` (`id`, `name`, `attributeBonuses`) VALUES
+INSERT INTO `races` (`id`, `races_name`, `races_attributeBonuses`) VALUES
 (0, 'human', '1,1,1,1,1'),
 (1, 'elf', '1,1,1,1,1'),
 (2, 'dwarf', '1,1,1,1,1'),
@@ -100,13 +99,13 @@ INSERT INTO `races` (`id`, `name`, `attributeBonuses`) VALUES
 
 CREATE TABLE `rooms` (
   `id` int(11) NOT NULL,
-  `roomName` varchar(255) NOT NULL DEFAULT 'newRoom',
-  `roomDescription` varchar(1024) NOT NULL DEFAULT 'An empty room.',
-  `north` int(11) NOT NULL DEFAULT -1,
-  `east` int(11) DEFAULT -1,
-  `south` int(11) NOT NULL DEFAULT -1,
-  `west` int(11) NOT NULL DEFAULT -1,
-  `playerList` varchar(1024) NOT NULL DEFAULT '{"playerList":[]}'
+  `rooms_name` varchar(255) NOT NULL DEFAULT 'newRoom',
+  `rooms_description` varchar(1024) NOT NULL DEFAULT 'An empty room.',
+  `rooms_north` int(11) NOT NULL DEFAULT -1,
+  `rooms_east` int(11) DEFAULT -1,
+  `rooms_south` int(11) NOT NULL DEFAULT -1,
+  `rooms_west` int(11) NOT NULL DEFAULT -1,
+  `rooms_playerList` varchar(1024) NOT NULL DEFAULT '{"playerList":[]}'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -117,20 +116,19 @@ CREATE TABLE `rooms` (
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
-  `username` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `characters` varchar(1024) NOT NULL DEFAULT '-1,-1,-1'
+  `users_username` varchar(255) NOT NULL,
+  `users_password` varchar(255) NOT NULL,
+  `users_characters` varchar(1024) NOT NULL DEFAULT '-1,-1,-1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `password`, `characters`) VALUES
+INSERT INTO `users` (`id`, `users_username`, `users_password`, `users_characters`) VALUES
 (0, 'Default', 'Default1!', '0,6,-1'),
 (1, 'Banjoman64', 'werter@5S', '1,-1,-1'),
-(14, 'den', 'Rusty1!', '-1,-1,7'),
-(15, 'den2', 'Rusty1!', '-1,-1,-1');
+(14, 'den', 'Rusty1!', '-1,-1,7');
 
 --
 -- Indexes for dumped tables
@@ -174,7 +172,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `characters`
 --
 ALTER TABLE `characters`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `classes`
@@ -198,7 +196,7 @@ ALTER TABLE `rooms`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

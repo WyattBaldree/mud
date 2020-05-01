@@ -40,7 +40,9 @@ exports.insert = function(table, columns, variables, callback){
 	let query = con.query(sql, function(err, result){
 		if(err) throw err;
 		argumentArray.unshift(result);
-		callback.apply(this, argumentArray);
+		if(callback){
+			callback.apply(this, argumentArray);
+		}
 	});
 }
 

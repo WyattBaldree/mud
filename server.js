@@ -23,6 +23,11 @@ io.on('connection', (socket) => {
 	socket.on('disconnect', disconnect);
 	socket.on('command', handleCommand);
 	socket.on('prompt reply', handlePromptReply);
+
+	//example of multitable select
+	/*mySqlModule.select("b.classes_name, c.races_name", "characters a, classes b, races c", "7 = a.id AND a.characters_class = b.id AND c.races_name = a.characters_race",function(result){
+		console.log(result);
+	} );*/
 });
 
 // start the express web server listening on 3000
