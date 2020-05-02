@@ -4,6 +4,7 @@ var socket = io();
 let enterPress = false;
 let promptState = 0;
 let currentPromptType = "";
+let currentExitType = "";
 
 const commandLine = document.getElementById('commandLine');
 commandLine.onkeypress = handleCommand;
@@ -15,7 +16,7 @@ function handleCommand(e){
 
 	    if(promptState){
 	    	closePrompt();
-	    	socket.emit('prompt reply', currentPromptType, commandLine.value);
+	    	socket.emit('prompt reply', currentPromptType, commandLine.value, currentExitType);
 		    commandLine.value = "";
 	    }
 	    else{
@@ -75,16 +76,17 @@ function printMessageToLog(msg){
 	}
 }
 
-function createPromptRequest(promptType, message){
+function createPromptRequest(promptType, message, exitType){
 	//called when a connection is established with the server
 	currentPromptType = promptType;
+	currentExitType = exitType;
 	document.getElementById('prompt').innerText = message;
 	openPrompt();
 }
 
 function clientConnected(){
 	printMessageToLog("Successfully connected to server!")
-	createPromptRequest("accountInitialization", "Login or Register?")
+	createPromptRequest("accountInitialization", "Login or Register?", "accountInitialization");
 }
 
 socket.on("chat message", printMessageToLog);

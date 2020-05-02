@@ -50,7 +50,7 @@ function handleCommand(command){
 	commandHandlerModule.handleCommand(io, this, command);
 }
 
-function handlePromptReply(promptType, promptReply){
-	promptHandlerModule.handlePromptReply(io, this, promptType, promptReply);
+function handlePromptReply(promptType, promptReply, exitType){
+	promptHandlerModule.handlePromptReply(io, this, promptType, promptReply, exitType);
 }
 
