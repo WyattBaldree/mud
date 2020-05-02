@@ -223,10 +223,11 @@ function characterInitialization(io, socket, promptType, promptReply){
 	//regex expression to check if it's 1,2,3
 	let regex = /^[123]$/;
 	if (regex.test(promptReply)){
-		socket.currentCharacter = promptReply;
+		socket.temp.currentCharacterSlot = promptReply;
 		exports.mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(result){
 			let characterIds = result[0].users_characters.split(",");
 			let targetCharacterId = characterIds[promptReply-1];
+			socket.currentCharacter = targetCharacterId;
 			if(targetCharacterId == -1){
 				//character creation
 				socket.emit('chat message', "Character creation started.");
@@ -234,6 +235,7 @@ function characterInitialization(io, socket, promptType, promptReply){
 			}else{
 				//load character
 				socket.emit('chat message', "Loading character.");
+				exports.mySqlModule.moveCharacter(socket, 1);
 			}
 		});
 	}else{
@@ -361,7 +363,7 @@ function createCharacter(socket){
 	exports.mySqlModule.insert("characters", "characters_firstname,characters_lastname,characters_race,characters_class,characters_currentRoom", characterInfo, function(insertResult){
 		exports.mySqlModule.select("*", "users",  "id = " + socket.userId, function(userResult){
 			let myCharacters = userResult[0].users_characters.split(",");
-			myCharacters[socket.currentCharacter-1] = insertResult.insertId;
+			myCharacters[socket.temp.currentCharacterSlot-1] = insertResult.insertId;
 
 			exports.mySqlModule.update("users", "users_characters = '" + myCharacters.toString() + "'", "id = '" + socket.userId + "'", function(result){
 				characterSelectScreen(socket);

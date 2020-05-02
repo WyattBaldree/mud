@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.0.1
+-- version 4.9.2
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 01, 2020 at 09:35 PM
--- Server version: 10.4.6-MariaDB
--- PHP Version: 7.3.9
+-- Generation Time: May 02, 2020 at 11:15 AM
+-- Server version: 10.4.11-MariaDB
+-- PHP Version: 7.4.1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -42,9 +42,9 @@ CREATE TABLE `characters` (
 --
 
 INSERT INTO `characters` (`id`, `characters_firstName`, `characters_lastName`, `characters_race`, `characters_class`, `characters_currentRoom`) VALUES
-(0, 'Default Character', '', 0, 0, -1),
-(1, 'Fendryn', 'Telvanni', 1, 1, -1),
-(6, 'Jeff', 'Barus', 0, 0, 0),
+(0, 'Default Character', '', 0, 0, 1),
+(1, 'Fendryn', 'Telvanni', 1, 1, 1),
+(6, 'Jeff', 'Barus', 0, 0, 1),
 (7, 'deathwing', 'wing', 1, 0, 0);
 
 -- --------------------------------------------------------
@@ -105,8 +105,16 @@ CREATE TABLE `rooms` (
   `rooms_east` int(11) DEFAULT -1,
   `rooms_south` int(11) NOT NULL DEFAULT -1,
   `rooms_west` int(11) NOT NULL DEFAULT -1,
-  `rooms_playerList` varchar(1024) NOT NULL DEFAULT '{"playerList":[]}'
+  `rooms_playerList` varchar(1024) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `rooms`
+--
+
+INSERT INTO `rooms` (`id`, `rooms_name`, `rooms_description`, `rooms_north`, `rooms_east`, `rooms_south`, `rooms_west`, `rooms_playerList`) VALUES
+(0, 'testRoom', 'You stand in the center of a large dimly lit room. You see an exit to the north.', 1, -1, -1, -1, ''),
+(1, 'Town Square', 'You enter the town square. You see a strange room to the south.', -1, -1, 0, -1, '1,');
 
 -- --------------------------------------------------------
 
@@ -128,7 +136,8 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `users_username`, `users_password`, `users_characters`) VALUES
 (0, 'Default', 'Default1!', '0,6,-1'),
 (1, 'Banjoman64', 'werter@5S', '1,-1,-1'),
-(14, 'den', 'Rusty1!', '-1,-1,7');
+(14, 'den', 'Rusty1!', '-1,-1,7'),
+(20, 'Banjo', 'werter@5S', '-1,-1,-1');
 
 --
 -- Indexes for dumped tables
@@ -190,13 +199,13 @@ ALTER TABLE `races`
 -- AUTO_INCREMENT for table `rooms`
 --
 ALTER TABLE `rooms`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

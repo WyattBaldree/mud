@@ -6,10 +6,11 @@ var io = require('socket.io')(http);
 
 const commandHandlerModule = require('./commandHandlerModule');
 const promptHandlerModule = require('./promptHandlerModule');
+const shortcutModule = require('./shortcutModule');
 const mySqlModule = require('./mySqlModule');
 commandHandlerModule.mySqlModule = mySqlModule;
 promptHandlerModule.mySqlModule = mySqlModule;
-
+shortcutModule.mySqlModule = mySqlModule;
 // serve files from the public directory
 app.use(express.static('public'));
 
