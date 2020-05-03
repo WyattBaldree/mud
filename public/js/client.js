@@ -16,8 +16,12 @@ function handleCommand(e){
 		let commandLine = document.getElementById("commandLine");
 	    enterPress = true;
 	    currentMessageIndex = 10;
-	    saved10messages.shift();
-	    saved10messages.push(commandLine.value);
+	    if(commandLine.value != ""){
+	    	saved10messages.shift();
+	   		saved10messages.push(commandLine.value);
+	    console.log(saved10messages);
+	    }
+
 	    
 	    if(promptState){
 	    	closePrompt();
@@ -30,6 +34,7 @@ function handleCommand(e){
 	    }
 	}
 	else if(e.code == "ArrowUp"){
+		console.log(saved10messages);
 		if(currentMessageIndex > 0 && saved10messages[currentMessageIndex-1] != ""){
 			currentMessageIndex--;
 		}
@@ -37,9 +42,11 @@ function handleCommand(e){
 		commandLine.value = saved10messages[currentMessageIndex];
 	}
 	else if(e.code == "ArrowDown"){
+		console.log(saved10messages);
 		if(currentMessageIndex < 9){
 			currentMessageIndex++;
 		}
+		console.log("currentmessage index: " + currentMessageIndex);
 		commandLine.value = saved10messages[currentMessageIndex];
 	}
 }
