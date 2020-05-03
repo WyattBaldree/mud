@@ -1,4 +1,5 @@
 const mySqlModule = require('./mySqlModule');
+const shortcutModule = require('./shortcutModule');
 
 exports.handleCommand = function(io, socket, command){
 	let commandArray = command.split(";");
@@ -131,11 +132,9 @@ function moveDirection(io, socket, direction){
 }
 function crossRoomsMessages(io, socket, firstName, lastName, fromRoom, toRoom, arriveMessage, leaveMessage){
 	mySqlModule.select("id, characters_currentRoom", "characters", "", function(charactersResult){
-		for(let s of Object.keys(io.sockets.connected)){
-
-			currentSocket = io.sockets.connected[s];
+		for(let currentSocket of shortcutModule.getAllConnectedSockets(io)){
 			if(currentSocket.currentCharacter != null && currentSocket.userId != socket.userId){
-				//this socket is not the socket that doing the move.
+				//this socket is logged in as a character and is not the socket thatis  doing the move.
 				let currentSocketCharacter = charactersResult.find(element => element.id == currentSocket.currentCharacter);
 
 				console.log(JSON.stringify(currentSocketCharacter));
@@ -150,7 +149,5 @@ function crossRoomsMessages(io, socket, firstName, lastName, fromRoom, toRoom, a
 		}
 	});
 	
-	mySqlModule.select("rooms_description", "rooms", "id = " + toRoom, function(result){
-		socket.emit('chat message', result[0].rooms_description);
-	});
+	shortcutModule.describeRoom(socket, toRoom);
 }

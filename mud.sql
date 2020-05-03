@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 02, 2020 at 11:15 AM
+-- Generation Time: May 04, 2020 at 12:38 AM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.1
 
@@ -44,8 +44,8 @@ CREATE TABLE `characters` (
 INSERT INTO `characters` (`id`, `characters_firstName`, `characters_lastName`, `characters_race`, `characters_class`, `characters_currentRoom`) VALUES
 (0, 'Default Character', '', 0, 0, 1),
 (1, 'Fendryn', 'Telvanni', 1, 1, 1),
-(6, 'Jeff', 'Barus', 0, 0, 1),
-(7, 'deathwing', 'wing', 1, 0, 0);
+(6, 'Jeff', 'Barus', 0, 0, 0),
+(7, 'deathwing', 'wing', 1, 0, 1);
 
 -- --------------------------------------------------------
 
@@ -113,8 +113,8 @@ CREATE TABLE `rooms` (
 --
 
 INSERT INTO `rooms` (`id`, `rooms_name`, `rooms_description`, `rooms_north`, `rooms_east`, `rooms_south`, `rooms_west`, `rooms_playerList`) VALUES
-(0, 'testRoom', 'You stand in the center of a large dimly lit room. You see an exit to the north.', 1, -1, -1, -1, ''),
-(1, 'Town Square', 'You enter the town square. You see a strange room to the south.', -1, -1, 0, -1, '1,');
+(0, 'testRoom', 'You stand in the center of a large dimly lit room. You see an exit to the north.', 1, -1, -1, -1, '6,'),
+(1, 'Town Square', 'You enter the town square. You see a strange room to the south.', -1, -1, 0, -1, '7,1,');
 
 -- --------------------------------------------------------
 
