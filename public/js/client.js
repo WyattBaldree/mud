@@ -5,15 +5,20 @@ let enterPress = false;
 let promptState = 0;
 let currentPromptType = "";
 let currentExitType = "";
+let saved10messages = ["","","","","","","","","",""];
+let currentMessageIndex = 10;
 
 const commandLine = document.getElementById('commandLine');
-commandLine.onkeypress = handleCommand;
+commandLine.onkeydown = handleCommand;
 
 function handleCommand(e){
 	if(e.code == "Enter"){
 		let commandLine = document.getElementById("commandLine");
 	    enterPress = true;
-
+	    currentMessageIndex = 10;
+	    saved10messages.shift();
+	    saved10messages.push(commandLine.value);
+	    
 	    if(promptState){
 	    	closePrompt();
 	    	socket.emit('prompt reply', currentPromptType, commandLine.value, currentExitType);
@@ -23,6 +28,19 @@ function handleCommand(e){
 	    	socket.emit('command', commandLine.value);
 		    commandLine.value = "";
 	    }
+	}
+	else if(e.code == "ArrowUp"){
+		if(currentMessageIndex > 0 && saved10messages[currentMessageIndex-1] != ""){
+			currentMessageIndex--;
+		}
+		console.log("currentmessage index: " + currentMessageIndex);
+		commandLine.value = saved10messages[currentMessageIndex];
+	}
+	else if(e.code == "ArrowDown"){
+		if(currentMessageIndex < 9){
+			currentMessageIndex++;
+		}
+		commandLine.value = saved10messages[currentMessageIndex];
 	}
 }
 
