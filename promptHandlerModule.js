@@ -3,6 +3,8 @@ const usernameMinLength = 3;
 const nameMaxLength = 16;
 const nameMinLength = 3;
 
+const mySqlModule = require('./mySqlModule');
+const commandHandlerModule = require('./commandHandlerModule');
 
 exports.handlePromptReply = function(io, socket, promptType, promptReply, exitPromptType = ""){
 	if(promptReply.toLowerCase() == "exit"){
@@ -98,7 +100,6 @@ function regUsername(io, socket, promptType, promptReply){
 		socket.emit('prompt request', 'regUsername', "Register your username: ", "accountInitialization");
 	}
 	else{
-		exports.mySqlModule.select("*", "users", "users_username = '" + promptReply + "'", regUsernameCallback, promptReply, socket);
 		mySqlModule.select("*", "users", "users_username = '" + promptReply + "'", regUsernameCallback, promptReply, socket);
 	}
 }
