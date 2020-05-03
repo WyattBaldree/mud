@@ -1,22 +1,24 @@
+const mySqlModule = require('./mySqlModule');
+
 exports.handleCommand = function(io, socket, command){
 	let commandArray = command.split(";");
 
 	switch(commandArray[0].trim().toLowerCase()){
 		case "n":
 		case "north":
-			move(socket, 0);
+			moveDirection(io, socket, 0);
 			break;
 		case "e":
 		case "east":
-			move(socket, 1);
+			moveDirection(io, socket, 1);
 			break;
 		case "s":
 		case "south":
-			move(socket, 2);
+			moveDirection(io, socket, 2);
 			break;
 		case "w":
 		case "west":
-			move(socket, 3);
+			moveDirection(io, socket, 3);
 			break;
 		case "say":
 			io.emit('chat message', socket.username + ": " + commandArray[1]);
@@ -64,40 +66,91 @@ function rollDice(io, socket, commandArray){
 	}
 }
 
-function move(socket, direction){
+exports.move = function(io, socket, toRoom, arriveMessage, leaveMessage){
 
-	exports.mySqlModule.select("a.rooms_north, a.rooms_east, a.rooms_south, a.rooms_west", 
-		"rooms a, characters b", 
-		"b.id = " + socket.currentCharacter + " AND a.id = b.characters_currentRoom",
+	mySqlModule.select("a.*, b.rooms_north, b.rooms_east, b.rooms_south, b.rooms_west", 
+		"characters a, rooms b", 
+		"b.id = a.characters_currentRoom",
 		function(result){
-			let toRoom = -1;
+			let currentCharacterResult = result.find(element => element.id == socket.currentCharacter);
+			let fN = currentCharacterResult.characters_firstName;
+			let lN = currentCharacterResult.characters_lastName;
+			let currentRoom = currentCharacterResult.characters_currentRoom;
+
+			crossRoomsMessages(io, socket, fN, lN, currentRoom, toRoom, arriveMessage, leaveMessage);
+			mySqlModule.moveCharacter(socket, toRoom);
+		});
+}
+
+function moveDirection(io, socket, direction){
+
+	mySqlModule.select("a.*, b.rooms_north, b.rooms_east, b.rooms_south, b.rooms_west", 
+		"characters a, rooms b", 
+		"b.id = a.characters_currentRoom",
+		function(result){
+			let currentCharacterResult = result.find(element => element.id == socket.currentCharacter);
+			let fN = currentCharacterResult.characters_firstName;
+			let lN = currentCharacterResult.characters_lastName;
+			let currentRoom = currentCharacterResult.characters_currentRoom;
 			switch(direction){
 				case 0:
-					if(result[0].rooms_north != -1){
-						exports.mySqlModule.moveCharacter(socket, result[0].rooms_north);
+					if(currentCharacterResult.rooms_north != -1){
+						exports.move(io, socket, currentCharacterResult.rooms_north, " enters the area from the south.", " leaves the area to the north.");
 						return;
+					}else{
+						socket.emit("chat message", "I'm unable to move in that direction.")
 					}
 					break;
 				case 1:
-					if(result[0].rooms_east != -1){
-						exports.mySqlModule.moveCharacter(socket, result[0].rooms_east);
+					if(currentCharacterResult.rooms_east != -1){
+						exports.move(io, socket, currentCharacterResult.rooms_east, " enters the area from the west.", " leaves the area to the east.");
 						return;
+					}else{
+						socket.emit("chat message", "I'm unable to move in that direction.")
 					}
 					break;
 				case 2:
-					if(result[0].rooms_south != -1){
-						exports.mySqlModule.moveCharacter(socket, result[0].rooms_south);
+					if(currentCharacterResult.rooms_south != -1){
+						exports.move(io, socket, currentCharacterResult.rooms_south, " enters the area from the north.", " leaves the area to the south.");
 						return;
+					}else{
+						socket.emit("chat message", "I'm unable to move in that direction.")
 					}
 					break;
 				case 3:
-					if(result[0].rooms_west != -1){
-						exports.mySqlModule.moveCharacter(socket, result[0].rooms_west);
+					if(currentCharacterResult.rooms_west != -1){
+						exports.move(io, socket, currentCharacterResult.rooms_west, " enters the area from the east.", " leaves the area to the west.");
 						return;
+					}else{
+						socket.emit("chat message", "I'm unable to move in that direction.")
 					}
 					break;
 			}
 
-			socket.emit("chat message", "I'm unable to move in that direction.")
 		});
+}
+function crossRoomsMessages(io, socket, firstName, lastName, fromRoom, toRoom, arriveMessage, leaveMessage){
+	mySqlModule.select("id, characters_currentRoom", "characters", "", function(charactersResult){
+		for(let s of Object.keys(io.sockets.connected)){
+
+			currentSocket = io.sockets.connected[s];
+			if(currentSocket.currentCharacter != null && currentSocket.userId != socket.userId){
+				//this socket is not the socket that doing the move.
+				let currentSocketCharacter = charactersResult.find(element => element.id == currentSocket.currentCharacter);
+
+				console.log(JSON.stringify(currentSocketCharacter));
+
+				if(currentSocketCharacter.characters_currentRoom == fromRoom){
+					currentSocket.emit('chat message', firstName + " " + lastName + leaveMessage);
+				}
+				if(currentSocketCharacter.characters_currentRoom == toRoom){
+					currentSocket.emit('chat message', firstName + " " + lastName + arriveMessage);
+				}
+			}
+		}
+	});
+	
+	mySqlModule.select("rooms_description", "rooms", "id = " + toRoom, function(result){
+		socket.emit('chat message', result[0].rooms_description);
+	});
 }

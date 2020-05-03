@@ -23,8 +23,6 @@ exports.select =  function(selectList, table, where, callback){
 	}
 	var sql = "SELECT " + selectList + " FROM " + table + whereStr + ";";
 
-	console.log(sql);
-
 	let query = con.query(sql, function(err, result){
 		if(err) throw err;
 		argumentArray.unshift(result);
@@ -67,38 +65,31 @@ exports.update = function(table, set, where, callback){
 }
 
 exports.moveCharacter = function(socket, toRoom){
-	exports.select(	"a.characters_currentRoom, b.rooms_playerList, b.rooms_description",
-	"characters a, rooms b", 
-	"a.id = " + socket.currentCharacter + " AND b.id = a.characters_currentRoom",
+	exports.select(	"a.id, a.characters_currentRoom, b.rooms_playerList, b.rooms_description",
+	"characters a, rooms b", "b.id = a.characters_currentRoom",
 	function(result){
-		let playerArray = result[0].rooms_playerList.split(',');
-		console.log("player array: " + playerArray);
-		console.log("player array[0]: " + playerArray[0]);
+		let currentCharacterResult = result.find(element => element.id == socket.currentCharacter);
+		let playerArray = currentCharacterResult.rooms_playerList.split(',');
 		playerArray.splice(playerArray.indexOf(socket.currentCharacter), 1, socket.currentCharacter);
 		let oldRoomPlayerList = "";
 		for(let playerId of playerArray){
-			console.log(playerId + " : " + socket.currentCharacter);
 			if(playerId != "" && playerId != socket.currentCharacter){
-				console.log("sdkfjlj: " + playerId + " : " + socket.currentCharacter);
 				oldRoomPlayerList = oldRoomPlayerList + playerId + ","
 			}
 		}
-		exports.update("rooms", "rooms_playerList = '" + oldRoomPlayerList + "'", "id = '" + result[0].characters_currentRoom + "'", function(){
+		exports.update("rooms", "rooms_playerList = '" + oldRoomPlayerList + "'", "id = '" + currentCharacterResult.characters_currentRoom + "'", function(){
 			exports.select(	"rooms_playerList, rooms_description",
 				"rooms", 
 				"id = " + toRoom,
 				function(toRoomResult){
-					console.log(toRoomResult);
 					let newRoomPlayerList = toRoomResult[0].rooms_playerList + socket.currentCharacter + ",";
 				
 					exports.update("rooms", "rooms_playerList = '" + newRoomPlayerList + "'", "id = '" + toRoom + "'", function(){
 						exports.update("characters", "characters_currentRoom = '" + toRoom + "'", "id = '" + socket.currentCharacter + "'", function(){
-							socket.emit('chat message', toRoomResult[0].rooms_description);
+							// Do something efter the move has completed.
 						});
 					});
 				});
 			});
-
-		//socket.emit('chat message', 'Current Room: ' + result[0].characters_currentRoom + '<br>Player List: ' + result[0].rooms_playerList);
 	});
 }

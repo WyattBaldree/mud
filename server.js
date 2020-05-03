@@ -38,7 +38,6 @@ http.listen(3000, (req, res) => {
 
 // serve the homepage
 app.get('/', (req, res) => {
-  console.log(req.url);
   res.sendFile(__dirname + '/clientInterface.html');
 });
 
