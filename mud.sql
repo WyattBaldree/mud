@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 04, 2020 at 12:38 AM
+-- Generation Time: May 04, 2020 at 04:39 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.1
 
@@ -44,8 +44,9 @@ CREATE TABLE `characters` (
 INSERT INTO `characters` (`id`, `characters_firstName`, `characters_lastName`, `characters_race`, `characters_class`, `characters_currentRoom`) VALUES
 (0, 'Default Character', '', 0, 0, 1),
 (1, 'Fendryn', 'Telvanni', 1, 1, 1),
-(6, 'Jeff', 'Barus', 0, 0, 0),
-(7, 'deathwing', 'wing', 1, 0, 1);
+(6, 'Jeff', 'Barus', 0, 0, 1),
+(7, 'deathwing', 'wing', 1, 0, 1),
+(9, 'Banjo', 'Man', 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -113,8 +114,8 @@ CREATE TABLE `rooms` (
 --
 
 INSERT INTO `rooms` (`id`, `rooms_name`, `rooms_description`, `rooms_north`, `rooms_east`, `rooms_south`, `rooms_west`, `rooms_playerList`) VALUES
-(0, 'testRoom', 'You stand in the center of a large dimly lit room. You see an exit to the north.', 1, -1, -1, -1, '6,'),
-(1, 'Town Square', 'You enter the town square. You see a strange room to the south.', -1, -1, 0, -1, '7,1,');
+(0, 'testRoom', 'You stand in the center of a large dimly lit room. You see an exit to the north.', 1, -1, -1, -1, '9,'),
+(1, 'Town Square', 'You enter the town square. You see a strange room to the south.', -1, -1, 0, -1, '7,0,6,1,');
 
 -- --------------------------------------------------------
 
@@ -137,7 +138,8 @@ INSERT INTO `users` (`id`, `users_username`, `users_password`, `users_characters
 (0, 'Default', 'Default1!', '0,6,-1'),
 (1, 'Banjoman64', 'werter@5S', '1,-1,-1'),
 (14, 'den', 'Rusty1!', '-1,-1,7'),
-(20, 'Banjo', 'werter@5S', '-1,-1,-1');
+(20, 'Banjo', 'werter@5S', '-1,-1,-1'),
+(21, 'Banjoman65', 'werter@5S', '9,-1,-1');
 
 --
 -- Indexes for dumped tables
@@ -181,7 +183,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `characters`
 --
 ALTER TABLE `characters`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `classes`
@@ -205,7 +207,7 @@ ALTER TABLE `rooms`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

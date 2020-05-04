@@ -40,7 +40,7 @@ app.get('/', (req, res) => {
 
 function disconnect(){
 	console.log('user disconnected');
-	io.emit('chat message', this.username + " has disconnected");
+	shortcutModule.messageToAll(io, this.username + " has disconnected");
 }
 
 function handleCommand(command){

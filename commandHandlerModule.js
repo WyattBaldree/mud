@@ -22,32 +22,33 @@ exports.handleCommand = function(io, socket, command){
 			moveDirection(io, socket, 3);
 			break;
 		case "say":
-			io.emit('chat message', socket.username + ": " + commandArray[1]);
+			shortcutModule.say(io, socket, socket.username + ": " + commandArray[1]);
 			break;
 		case "dice":
 			rollDice(io, socket, commandArray);
 			break;
 		case "help":
-			socket.emit('chat message', "HELP:<br>" + 
-										"> To use a command, type \"<command>;<param 1>;<param 2>;...\"<br>" + 
-										"> For example: say;hello everyone<br>" + 
-										"> The available commands are: say, dice");
+			shortcutModule.messageToClient(socket, 
+				"HELP:<br>" + 
+				"> To use a command, type \"<command>;<param 1>;<param 2>;...\"<br>" + 
+				"> For example: say;hello everyone<br>" + 
+				"> The available commands are: say, dice");
 			break;
 		default:
-			socket.emit('chat message', "invalid command try 'help'");
+			shortcutModule.messageToClient(socket, "invalid command try 'help'");
 			break;	
 	}
 }
 
 function rollDice(io, socket, commandArray){
 	if(commandArray.length < 2){
-		socket.emit('chat message', "Dice requires a parameter. Try \"dice;3d6\".");
+		shortcutModule.messageToClient(socket, "Dice requires a parameter. Try \"dice;3d6\".");
 		return;
 	}
 	let diceStr = commandArray[1].trim();
 	if(/\dd\d/g.test(diceStr)){
 		let diceValues = diceStr.split("d");
-		io.emit('chat message', socket.username + " rolls " + diceStr + ".");
+		shortcutModule.say(io, socket, socket.username + " rolls " + diceStr + ".");
 		let total = 0
 		let totalStr = "";
 		for(let i = 0 ; i < diceValues[0] ; i++){
@@ -60,10 +61,10 @@ function rollDice(io, socket, commandArray){
 				totalStr += " + " + roll;
 			}
 		}
-		io.emit('chat message', socket.username + " rolled " + total  + " (" + totalStr + ").");
+		shortcutModule.say(io, socket, socket.username + " rolled " + total  + " (" + totalStr + ").");
 	}
 	else{
-		socket.emit('chat message', "\"" + commandArray[1] + "\" is not a valid dice type. Try \"dice;3d6\".");
+		shortcutModule.messageToClient(socket, "\"" + commandArray[1] + "\" is not a valid dice type. Try \"dice;3d6\".");
 	}
 }
 
@@ -99,7 +100,7 @@ function moveDirection(io, socket, direction){
 						exports.move(io, socket, currentCharacterResult.rooms_north, " enters the area from the south.", " leaves the area to the north.");
 						return;
 					}else{
-						socket.emit("chat message", "I'm unable to move in that direction.")
+						shortcutModule.messageToClient(socket, "I'm unable to move in that direction.")
 					}
 					break;
 				case 1:
@@ -107,7 +108,7 @@ function moveDirection(io, socket, direction){
 						exports.move(io, socket, currentCharacterResult.rooms_east, " enters the area from the west.", " leaves the area to the east.");
 						return;
 					}else{
-						socket.emit("chat message", "I'm unable to move in that direction.")
+						shortcutModule.messageToClient(socket, "I'm unable to move in that direction.")
 					}
 					break;
 				case 2:
@@ -115,7 +116,7 @@ function moveDirection(io, socket, direction){
 						exports.move(io, socket, currentCharacterResult.rooms_south, " enters the area from the north.", " leaves the area to the south.");
 						return;
 					}else{
-						socket.emit("chat message", "I'm unable to move in that direction.")
+						shortcutModule.messageToClient(socket, "I'm unable to move in that direction.")
 					}
 					break;
 				case 3:
@@ -123,7 +124,7 @@ function moveDirection(io, socket, direction){
 						exports.move(io, socket, currentCharacterResult.rooms_west, " enters the area from the east.", " leaves the area to the west.");
 						return;
 					}else{
-						socket.emit("chat message", "I'm unable to move in that direction.")
+						shortcutModule.messageToClient(socket, "I'm unable to move in that direction.")
 					}
 					break;
 			}
@@ -140,10 +141,10 @@ function crossRoomsMessages(io, socket, firstName, lastName, fromRoom, toRoom, a
 				console.log(JSON.stringify(currentSocketCharacter));
 
 				if(currentSocketCharacter.characters_currentRoom == fromRoom){
-					currentSocket.emit('chat message', firstName + " " + lastName + leaveMessage);
+					shortcutModule.messageToClient(currentSocket, firstName + " " + lastName + leaveMessage);
 				}
 				if(currentSocketCharacter.characters_currentRoom == toRoom){
-					currentSocket.emit('chat message', firstName + " " + lastName + arriveMessage);
+					shortcutModule.messageToClient(currentSocket, firstName + " " + lastName + arriveMessage);
 				}
 			}
 		}
