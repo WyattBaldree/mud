@@ -1,6 +1,10 @@
 const mySqlModule = require('./mySqlModule');
-function getAllPlayersInRoom(){
-
+function getAllPlayersInRoom(room, callback){
+	//return a list of all players in the room provided
+	mySqlModule.select("rooms_playerList", "rooms", "id = " + room, function(result){
+		let playerList = result[0].rooms_playerList.split(",");
+		callback(playerList);
+	});
 }
 
 exports.getAllConnectedSockets = function(io){
@@ -34,6 +38,8 @@ exports.describeRoom = function(socket, roomId){
 
 exports.say = function(io, socket, message){
 	let socketList = exports.getAllConnectedSockets(io);
+
+
 	//find all characters in same room.
 		//check if each character has a socket currently controlling it.
 			//if so, say to them.
@@ -52,7 +58,16 @@ exports.say = function(io, socket, message){
 }
 
 exports.messageInRoom = function(io,roomId, message){
-
+	exports.getAllPlayersInRoom(roomId, function(playerList){
+		let socketList = exports.getAllConnectedSockets(io);
+		for(let player of playerList){
+			for(let socket of socketList){
+				if(socket.currentCharacter == player){
+					messageToClient(socket, message);
+				}
+			}
+		}
+	});
 }
 
 exports.messageToClient = function(socket, message){

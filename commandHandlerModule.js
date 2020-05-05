@@ -29,10 +29,10 @@ exports.handleCommand = function(io, socket, command){
 			break;
 		case "help":
 			shortcutModule.messageToClient(socket, 
-				"HELP:<br>" + 
-				"> To use a command, type \"<command>;<param 1>;<param 2>;...\"<br>" + 
-				"> For example: say;hello everyone<br>" + 
-				"> The available commands are: say, dice");
+				"<b>HELP:</b><br>" + 
+				"To use a command, type \"<command>;<param 1>;<param 2>;...\"<br>" + 
+				"For example: say;hello everyone<br>" + 
+				"The available commands are: say, dice");
 			break;
 		default:
 			shortcutModule.messageToClient(socket, "<color:red>Invalid command try 'help'");
