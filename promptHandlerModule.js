@@ -109,6 +109,7 @@ function regUsernameCallback(result, username, socket){
 	if(result.length <= 0){ //if promptReply is a valid username
 		socket.temp.username = username;
 		shortcutModule.messageToClient(socket, 'Username, '+ username + ', accepted.');
+		shortcutModule.messageToClient(socket, 'Please be aware server admins can see registered passwords.');
 		socket.emit('prompt request', 'regPassword', "Register your password: ","accountInitialization");
 	}else{
 		shortcutModule.messageToClient(socket, "Username taken.")
@@ -215,7 +216,7 @@ function characterSelectScreen(socket){//redo  with new multiselect
 				}
 
 				shortcutModule.messageToClient(socket, charactersInfo);
-				socket.emit('prompt request', 'characterInitialization', "Which would you like to load? (1, 2, 3)", "accountInitialization");
+				socket.emit('prompt request', 'characterInitialization', "Which would you like to load or delete? (1, 2, 3)", "accountInitialization");
 			});
 		});
 	});
@@ -223,8 +224,9 @@ function characterSelectScreen(socket){//redo  with new multiselect
 
 function characterInitialization(io, socket, promptType, promptReply){
 	//regex expression to check if it's 1,2,3
-	let regex = /^[123]$/;
-	if (regex.test(promptReply)){
+	let loadRegex = /^[123]$/;
+	let delRegex = /^(del )+[123]$/;
+	if (loadRegex.test(promptReply.trim())){
 		socket.temp.currentCharacterSlot = promptReply;
 		mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(result){
 			let characterIds = result[0].users_characters.split(",");
@@ -240,8 +242,53 @@ function characterInitialization(io, socket, promptType, promptReply){
 				commandHandlerModule.move(io, socket, 1, " pops into existence.", " fades before disappearing.");
 			}
 		});
-	}else{
-		shortcutModule.messageToClient(socket, "Please enter 1, 2, or 3.");
+	}
+	else if(delRegex.test(promptReply.toLowerCase().trim())){
+		socket.temp.currentCharacterSlot = promptReply.split(" ")[1];
+		confirmPrompt(socket, "are you sure you want to delete? (Y/N)", "characterSelectScreen", 
+			function(){
+				//select user to open character string array
+				mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(currentUserResult){
+					let characterIds = currentUserResult[0].users_characters.split(",");
+					socket.temp.characterToRemove = characterIds[socket.temp.currentCharacterSlot - 1];
+					console.log("socket.temp.characterToRemove" + socket.temp.characterToRemove);
+					characterIds[socket.temp.currentCharacterSlot - 1] = -1;
+					//update character string with -1
+					mySqlModule.update("users", "users_characters ='" + characterIds.toString() + "'", "id ='" + socket.userId + "'", function(result){
+						//multiselect to find room where character was last
+						mySqlModule.select("a.characters_currentRoom, b.id, b.rooms_playerList", "characters a, rooms b", "a.id = " + socket.temp.characterToRemove + " AND b.id = a.characters_currentRoom", function(currentRoomResult){
+							//open character string array of rooms_playerList
+							console.log(currentRoomResult);
+							let roomsPlayerList = currentRoomResult[0].rooms_playerList.split(",");
+							console.log("roomsPlayerList: " + roomsPlayerList);
+							//find the index where the characters id is located
+							let index = -1;
+							for(let i = 0; i < roomsPlayerList.length; i++){
+								if(roomsPlayerList[i] == socket.temp.characterToRemove){
+									index = i;
+									break;
+								}
+							}
+							roomsPlayerList.splice(index,1);
+							console.log("roomsPlayerList after splice: " + roomsPlayerList);
+							console.log("currentRoomResult[0].id" + currentRoomResult[0].id); 
+							//update rooms with updated string array
+							mySqlModule.update("rooms", "rooms_playerList= '" + roomsPlayerList.toString() + "'", "id = '" + currentRoomResult[0].id + "'", function(){
+								mySqlModule.delete("characters", "id = '" + socket.temp.characterToRemove + "'", function(result){
+									shortcutModule.messageToClient(socket, "Character deleted!");
+									characterSelectScreen(socket); 
+								})
+							})
+						})	
+					})
+				})
+			}, 
+			function(){
+				characterSelectScreen(socket);
+			})
+	}
+	else{
+		shortcutModule.messageToClient(socket, "Please enter 1, 2, or 3 to load a character or del 1, del 2 , or del 3 to delete a character.");
 		characterSelectScreen(socket);
 	}
 	
@@ -250,7 +297,7 @@ function characterInitialization(io, socket, promptType, promptReply){
 function characterCreationFirstName(io, socket, promptType, promptReply){
 	socket.temp.firstname = promptReply;
 	if(isUsernameValid(socket.temp.firstname)){ //need isCharacterName regex to check for numbers and symbols except hyphen
-		confirmPrompt(socket, 'Do you really want your first name to be ' + socket.temp.firstname + '? (Y/N)', "characterSelectScreen", 
+		confirmPrompt(socket, 'Is ' + socket.temp.firstname + ' okay? (Y/N)', "characterSelectScreen", 
 			function(){ 
 				socket.emit('prompt request', 'characterCreationLastName', "What is your last name?", "characterSelectScreen");
 			}, 
@@ -270,10 +317,17 @@ function characterCreationFirstName(io, socket, promptType, promptReply){
 function characterCreationLastName(io, socket, promptType, promptReply){
 	socket.temp.lastname = promptReply;
 	if(isUsernameValid(socket.temp.lastname)){ //need isCharacterName regex to check for numbers and symbols except hyphen
-		confirmPrompt(socket, 'Do you really want your last name to be ' + socket.temp.lastname + '? (Y/N)', "characterSelectScreen",
+		confirmPrompt(socket, 'Is ' + socket.temp.lastname + ' okay? (Y/N)', "characterSelectScreen",
 			function(){ 
+				mySqlModule.select("*", "races",  "", function(result, socket){
+				let availableRaces = result[0].races_name + "";
+				for(let i = 1; i < result.length; i++){
+					availableRaces += ", " + result[i].races_name;
+				}
+				shortcutModule.messageToClient(socket, "Available Chararacter Races: " + availableRaces);
 				socket.emit('prompt request', 'characterCreationRace', "What is your race?", "characterSelectScreen");
-		}, 
+				}, socket);
+			}, 
 			function(){
 				socket.emit('prompt request', 'characterCreationLastName', "What is your last name?", "characterSelectScreen");
 			}
@@ -292,9 +346,16 @@ function characterCreationRace(io, socket, promptType, promptReply){
 		if(result.length > 0){
 			socket.temp.raceid = result[0].id;
 			socket.temp.race = promptReply;
-			confirmPrompt(socket, 'Are you okay with being a(n) ' + socket.temp.race + '? (Y/N)', "characterSelectScreen",
+			confirmPrompt(socket, 'Is ' + socket.temp.race + ' okay? (Y/N)', "characterSelectScreen",
 				function(){ 
-					socket.emit('prompt request', 'characterCreationClass', "What is your class?", "characterSelectScreen");
+					mySqlModule.select("*", "classes",  "", function(result, socket){
+						let availableClasses = result[0].classes_name + "";
+						for(let i = 1; i < result.length; i++){
+						availableClasses += ", " + result[i].classes_name;
+					}
+					shortcutModule.messageToClient(socket, "Available Character Classes: " + availableClasses);
+					socket.emit('prompt request', 'characterCreationClass', "What is your class?", "characterSelectScreen")
+					}, socket);
 				}, 
 				function(){
 					socket.emit('prompt request', 'characterCreationRace', "What is your race?", "characterSelectScreen");
@@ -319,7 +380,7 @@ function characterCreationClass(io, socket, promptType, promptReply){
 		if(result.length > 0){
 			socket.temp.classid = result[0].id;
 			socket.temp.class = promptReply;
-			confirmPrompt(socket, 'Are you okay with being a(n) ' + socket.temp.class + '? (Y/N)', "characterSelectScreen",
+			confirmPrompt(socket, 'Is ' + socket.temp.class + ' okay? (Y/N)', "characterSelectScreen",
 				function(){ 
 					characterCreationComplete(socket);
 				}, 
@@ -342,10 +403,9 @@ function characterCreationClass(io, socket, promptType, promptReply){
 }
 
 function characterCreationComplete(socket){
-	shortcutModule.messageToClient(socket, "first name: " + socket.temp.firstname + "<br>last name: " + socket.temp.lastname + "<br>race: " + socket.temp.race + "<br>class: " + socket.temp.class);
+	shortcutModule.messageToClient(socket, "First name: " + socket.temp.firstname + "<br>Last name: " + socket.temp.lastname + "<br>Race: " + socket.temp.race + "<br>Class: " + socket.temp.class);
 	confirmPrompt(socket, 'Are you okay with this? (Y/N)', "characterSelectScreen",
 		function(){
-			shortcutModule.messageToClient(socket, "character function lol");
 			createCharacter(socket);
 		}, 
 		function(){
@@ -364,8 +424,8 @@ function createCharacter(socket){
 						0;
 	mySqlModule.insert("characters", "characters_firstname,characters_lastname,characters_race,characters_class,characters_currentRoom", characterInfo, function(insertResult){
 		mySqlModule.select("*", "users",  "id = " + socket.userId, function(userResult){
-			let myCharacters = userResult[0].users_characters.split(",");
-			myCharacters[socket.temp.currentCharacterSlot-1] = insertResult.insertId;
+			let myCharacters = userResult[0].users_characters.split(","); //split character string by ,
+			myCharacters[socket.temp.currentCharacterSlot-1] = insertResult.insertId; //change current character with new id. insertId returns autogenerated id from the latest query.
 
 			mySqlModule.update("users", "users_characters = '" + myCharacters.toString() + "'", "id = '" + socket.userId + "'", function(result){
 				characterSelectScreen(socket);

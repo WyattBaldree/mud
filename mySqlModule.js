@@ -64,6 +64,23 @@ exports.update = function(table, set, where, callback){
 	});
 }
 
+exports.delete = function(table, where, callback){
+	//DELETE FROM somelog WHERE user = 'jcole'
+	let argumentArray = [];
+	for(let i = 3; i < arguments.length ; i++){
+		argumentArray.push(arguments[i]);
+	}
+
+	var sql = "DELETE FROM " + table + " WHERE " + where + ";"; 
+	let query = con.query(sql, function(err,result){
+		if (err) throw err;
+		argumentArray.unshift(result);
+		if(callback){
+			callback.apply(this, argumentArray);
+		}
+	})
+}
+
 exports.moveCharacter = function(socket, toRoom){
 	exports.select(	"a.id, a.characters_currentRoom, b.rooms_playerList, b.rooms_description",
 	"characters a, rooms b", "b.id = a.characters_currentRoom",
