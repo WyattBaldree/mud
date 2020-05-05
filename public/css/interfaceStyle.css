@@ -10,7 +10,7 @@
 }
 
 body {
-	font: 15px Helvetica, Arial;
+	font: 16px retro;
 	color: white;
 }
 
@@ -134,3 +134,8 @@ html, body, #outer {
 form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
 form input { border: 0; padding: 10px; width: 90%; margin-right: 0.5%; }
 form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+
+@font-face {
+	font-family: "retro";
+	src: url("/font/lcdpc_2.ttf");
+}

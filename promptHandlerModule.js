@@ -86,14 +86,14 @@ function regAccount(io, socket, promptType, promptReply){
 			socket.emit('prompt request', 'regUsername', "Register your username: ", "accountInitialization");
 			break;
 		default:
-			shortcutModule.messageToClient(socket, 'Invalid choice. Try typing register or login.');
+			shortcutModule.messageToClient(socket, '<color:red>Invalid choice. Try typing register or login.');
 			socket.emit('prompt request', "accountInitialization", "Login or Register?", "accountInitialization");
 	}
 }
 
 function regUsername(io, socket, promptType, promptReply){
 	if(!isUsernameValid(promptReply)){
-		shortcutModule.messageToClient(socket, "Username Invalid. Username requires:<br>" + 
+		shortcutModule.messageToClient(socket, "<color:red>Username Invalid. Username requires:<br>" + 
 									">at least 3 characters<br>" +
 									">no more than 16 characters<br>" +
 									">none of the following: ~`!@#$%^&*+=-[]\';,\\/{}|\":<>?()._" 
@@ -140,7 +140,7 @@ function regPassword(io, socket, promptType, promptReply){
 		shortcutModule.messageToClient(socket, "Account successfully created.")
 		socket.emit('prompt request', 'accountInitialization', "Login or Register?", "accountInitialization");
 	}else{
-		shortcutModule.messageToClient(socket, "Password Invalid. Password requires:<br>" + 
+		shortcutModule.messageToClient(socket, "<color:red>Password Invalid. Password requires:<br>" + 
 									">at least 1 lower case character<br>" +
 									">at least 1 upper case character<br>" +
 									">at least 6 characters<br>" +
@@ -152,7 +152,7 @@ function regPassword(io, socket, promptType, promptReply){
 
 function loginUsername(io, socket, promptType, promptReply){
 	if(!isUsernameValid(promptReply)){
-		shortcutModule.messageToClient(socket, "Username Invalid.");
+		shortcutModule.messageToClient(socket, "<color:red>Username Invalid.");
 		socket.emit('prompt request', 'loginUsername', "Enter your username: ", "accountInitialization");
 	}
 	else{
@@ -166,7 +166,7 @@ function loginUsernameCallback(result, username, socket){
 		shortcutModule.messageToClient(socket, 'Username, '+ username + ', accepted.');
 		socket.emit('prompt request', 'loginPassword', "Enter your password: ", "accountInitialization");
 	}else{
-		shortcutModule.messageToClient(socket, "Username does not exist.")
+		shortcutModule.messageToClient(socket, "<color:red>Username does not exist.")
 		socket.emit('prompt request', 'loginUsername', "Enter your username: ", "accountInitialization");
 	}
 }
@@ -182,7 +182,7 @@ function loginPasswordCallback(result, password, socket){
 	if(result.length > 0){ //if the account exists.
 		login(socket, result[0].id);
 	}else{
-		shortcutModule.messageToClient(socket, "Wrong Password.")
+		shortcutModule.messageToClient(socket, "<color:red>Wrong Password.")
 		socket.emit('prompt request', 'loginUsername', "Enter your username: ", "accountInitialization");
 	}
 }
@@ -259,7 +259,7 @@ function characterCreationFirstName(io, socket, promptType, promptReply){
 			}
 		);
 	}else{
-		shortcutModule.messageToClient(socket, "First Name is invalid.<br>" +
+		shortcutModule.messageToClient(socket, "<color:red>First Name is invalid.<br>" +
 					">First name should be between 0 and 16 characters<br>" +
 					">Should only contain letters and hyphen"
 					);
@@ -279,7 +279,7 @@ function characterCreationLastName(io, socket, promptType, promptReply){
 			}
 		);
 	}else{
-		shortcutModule.messageToClient(socket, "Last Name is invalid.<br>" +
+		shortcutModule.messageToClient(socket, "<color:red>Last Name is invalid.<br>" +
 					">Last name should be between 0 and 16 characters<br>" +
 					">Should only contain letters and hyphen"
 					);
@@ -307,7 +307,7 @@ function characterCreationRace(io, socket, promptType, promptReply){
 				for(let i = 1; i < result.length; i++){
 					availableRaces += ", " + result[i].races_name;
 				}
-				shortcutModule.messageToClient(socket, "Available Chararacter Races: " + availableRaces);
+				shortcutModule.messageToClient(socket, "<color:red>Available Chararacter Races: " + availableRaces);
 				socket.emit('prompt request', 'characterCreationRace', "What is your race?", "characterSelectScreen");
 			}, socket);
 		}	
@@ -334,7 +334,7 @@ function characterCreationClass(io, socket, promptType, promptReply){
 				for(let i = 1; i < result.length; i++){
 					availableClasses += ", " + result[i].classes_name;
 				}
-				shortcutModule.messageToClient(socket, "Available Character Classes: " + availableClasses);
+				shortcutModule.messageToClient(socket, "<color:red>Available Character Classes: " + availableClasses);
 				socket.emit('prompt request', 'characterCreationClass', "What is your class?", "characterSelectScreen")
 			}, socket);
 		}	
@@ -342,10 +342,13 @@ function characterCreationClass(io, socket, promptType, promptReply){
 }
 
 function characterCreationComplete(socket){
-	shortcutModule.messageToClient(socket, "first name: " + socket.temp.firstname + "<br>last name: " + socket.temp.lastname + "<br>race: " + socket.temp.race + "<br>class: " + socket.temp.class);
+	shortcutModule.messageToClient(socket, 	"<b>First Name: </b>" + socket.temp.firstname + 
+											"<br><b>last name: </b>" + socket.temp.lastname + 
+											"<br><b>race: </b>" + socket.temp.race + 
+											"<br><b>class: </b>" + socket.temp.class);
 	confirmPrompt(socket, 'Are you okay with this? (Y/N)', "characterSelectScreen",
 		function(){
-			shortcutModule.messageToClient(socket, "character function lol");
+			shortcutModule.messageToClient(socket, "<color:yellow><b>character function lol");
 			createCharacter(socket);
 		}, 
 		function(){
@@ -387,7 +390,7 @@ function confirm(io, socket, promptType, promptReply, exitPromptType){
 			socket.temp.noCallback(io, socket);
 		break;
 		default:
-		shortcutModule.messageToClient(socket, promptReply + ' is an invalid response. <br> >Try Y/N');
+		shortcutModule.messageToClient(socket, "<color:red>" + promptReply + ' is an invalid response. <br> >Try Y/N');
 		socket.emit('prompt request', 'confirm', socket.temp.confirmMessage, exitPromptType);
 	}
 }

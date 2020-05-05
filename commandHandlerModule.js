@@ -22,7 +22,7 @@ exports.handleCommand = function(io, socket, command){
 			moveDirection(io, socket, 3);
 			break;
 		case "say":
-			shortcutModule.say(io, socket, socket.username + ": " + commandArray[1]);
+			shortcutModule.say(io, socket, "<b>" + socket.username + "</b>: " + commandArray[1]);
 			break;
 		case "dice":
 			rollDice(io, socket, commandArray);
@@ -35,14 +35,14 @@ exports.handleCommand = function(io, socket, command){
 				"> The available commands are: say, dice");
 			break;
 		default:
-			shortcutModule.messageToClient(socket, "invalid command try 'help'");
+			shortcutModule.messageToClient(socket, "<color:red>Invalid command try 'help'");
 			break;	
 	}
 }
 
 function rollDice(io, socket, commandArray){
 	if(commandArray.length < 2){
-		shortcutModule.messageToClient(socket, "Dice requires a parameter. Try \"dice;3d6\".");
+		shortcutModule.messageToClient(socket, "<color:red>Dice requires a parameter. Try \"dice;3d6\".");
 		return;
 	}
 	let diceStr = commandArray[1].trim();
@@ -64,7 +64,7 @@ function rollDice(io, socket, commandArray){
 		shortcutModule.say(io, socket, socket.username + " rolled " + total  + " (" + totalStr + ").");
 	}
 	else{
-		shortcutModule.messageToClient(socket, "\"" + commandArray[1] + "\" is not a valid dice type. Try \"dice;3d6\".");
+		shortcutModule.messageToClient(socket, "<color:red>\"" + commandArray[1] + "\" is not a valid dice type. Try \"dice;3d6\".");
 	}
 }
 
@@ -100,7 +100,7 @@ function moveDirection(io, socket, direction){
 						exports.move(io, socket, currentCharacterResult.rooms_north, " enters the area from the south.", " leaves the area to the north.");
 						return;
 					}else{
-						shortcutModule.messageToClient(socket, "I'm unable to move in that direction.")
+						shortcutModule.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
 					}
 					break;
 				case 1:
@@ -108,7 +108,7 @@ function moveDirection(io, socket, direction){
 						exports.move(io, socket, currentCharacterResult.rooms_east, " enters the area from the west.", " leaves the area to the east.");
 						return;
 					}else{
-						shortcutModule.messageToClient(socket, "I'm unable to move in that direction.")
+						shortcutModule.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
 					}
 					break;
 				case 2:
@@ -116,7 +116,7 @@ function moveDirection(io, socket, direction){
 						exports.move(io, socket, currentCharacterResult.rooms_south, " enters the area from the north.", " leaves the area to the south.");
 						return;
 					}else{
-						shortcutModule.messageToClient(socket, "I'm unable to move in that direction.")
+						shortcutModule.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
 					}
 					break;
 				case 3:
@@ -124,7 +124,7 @@ function moveDirection(io, socket, direction){
 						exports.move(io, socket, currentCharacterResult.rooms_west, " enters the area from the east.", " leaves the area to the west.");
 						return;
 					}else{
-						shortcutModule.messageToClient(socket, "I'm unable to move in that direction.")
+						shortcutModule.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
 					}
 					break;
 			}
