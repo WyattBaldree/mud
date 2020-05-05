@@ -43,14 +43,18 @@ exports.say = function(io, socket, message){
 	//find all characters in same room.
 		//check if each character has a socket currently controlling it.
 			//if so, say to them.
-	mySqlModule.select("id, characters_currentRoom", "characters", "", function(charactersTableResult){
-		let originRoom = charactersTableResult.find(element => element.id == socket.currentCharacter).characters_currentRoom;
+	mySqlModule.select("id, characters_currentRoom, characters_firstName, characters_lastName", "characters", "", function(charactersTableResult){
+		let myCharacter = charactersTableResult.find(element => element.id == socket.currentCharacter);
+		let originRoom = myCharacter.characters_currentRoom;
+		let myName = myCharacter.characters_firstName + " " + myCharacter.characters_lastName;
+
+		let finalMessage = "<b>" + myName + ": </b>" + message;
 
 		for(let c of charactersTableResult){
 			if(c.characters_currentRoom == originRoom){
 				let characterSocket = socketList.find(element => element.currentCharacter == c.id);
 				if(characterSocket){
-					exports.messageToClient(characterSocket, message);
+					exports.messageToClient(characterSocket, finalMessage);
 				}
 			}
 		}

@@ -216,7 +216,7 @@ function characterSelectScreen(socket){//redo  with new multiselect
 				}
 
 				shortcutModule.messageToClient(socket, charactersInfo);
-				socket.emit('prompt request', 'characterInitialization', "Which would you like to load or delete? (1, 2, 3)", "accountInitialization");
+				socket.emit('prompt request', 'characterInitialization', "Which character slot would you like to load (1/2/3) or delete (del 1/2/3)? ", "accountInitialization");
 			});
 		});
 	});
@@ -245,49 +245,49 @@ function characterInitialization(io, socket, promptType, promptReply){
 	}
 	else if(delRegex.test(promptReply.toLowerCase().trim())){
 		socket.temp.currentCharacterSlot = promptReply.split(" ")[1];
-		confirmPrompt(socket, "are you sure you want to delete? (Y/N)", "characterSelectScreen", 
-			function(){
-				//select user to open character string array
-				mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(currentUserResult){
-					let characterIds = currentUserResult[0].users_characters.split(",");
-					socket.temp.characterToRemove = characterIds[socket.temp.currentCharacterSlot - 1];
-					console.log("socket.temp.characterToRemove" + socket.temp.characterToRemove);
-					characterIds[socket.temp.currentCharacterSlot - 1] = -1;
-					//update character string with -1
-					mySqlModule.update("users", "users_characters ='" + characterIds.toString() + "'", "id ='" + socket.userId + "'", function(result){
-						//multiselect to find room where character was last
-						mySqlModule.select("a.characters_currentRoom, b.id, b.rooms_playerList", "characters a, rooms b", "a.id = " + socket.temp.characterToRemove + " AND b.id = a.characters_currentRoom", function(currentRoomResult){
-							//open character string array of rooms_playerList
-							console.log(currentRoomResult);
-							let roomsPlayerList = currentRoomResult[0].rooms_playerList.split(",");
-							console.log("roomsPlayerList: " + roomsPlayerList);
-							//find the index where the characters id is located
-							let index = -1;
-							for(let i = 0; i < roomsPlayerList.length; i++){
-								if(roomsPlayerList[i] == socket.temp.characterToRemove){
-									index = i;
-									break;
-								}
-							}
-							roomsPlayerList.splice(index,1);
-							console.log("roomsPlayerList after splice: " + roomsPlayerList);
-							console.log("currentRoomResult[0].id" + currentRoomResult[0].id); 
-							//update rooms with updated string array
-							mySqlModule.update("rooms", "rooms_playerList= '" + roomsPlayerList.toString() + "'", "id = '" + currentRoomResult[0].id + "'", function(){
-								mySqlModule.delete("characters", "id = '" + socket.temp.characterToRemove + "'", function(result){
-									shortcutModule.messageToClient(socket, "Character deleted!");
-									characterSelectScreen(socket); 
+			mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(currentUserResult){
+				let characterIds = currentUserResult[0].users_characters.split(",");
+				socket.temp.characterToRemove = characterIds[socket.temp.currentCharacterSlot - 1];
+				if(socket.temp.characterToRemove != -1){
+					confirmPrompt(socket, "are you sure you want to delete your character in slot " + socket.temp.currentCharacterSlot + "? (Y/N)", "characterSelectScreen", 
+						function(){
+						//select user to open character string array
+								characterIds[socket.temp.currentCharacterSlot - 1] = -1;
+								//update character string with -1
+								mySqlModule.update("users", "users_characters ='" + characterIds.toString() + "'", "id ='" + socket.userId + "'", function(result){
+									//multiselect to find room where character was last
+									mySqlModule.select("a.characters_currentRoom, b.id, b.rooms_playerList", "characters a, rooms b", "a.id = " + socket.temp.characterToRemove + " AND b.id = a.characters_currentRoom", function(currentRoomResult){
+										//open character string array of rooms_playerList
+										let roomsPlayerList = currentRoomResult[0].rooms_playerList.split(",");
+										//find the index where the characters id is located
+										let index = -1;
+										for(let i = 0; i < roomsPlayerList.length; i++){
+											if(roomsPlayerList[i] == socket.temp.characterToRemove){
+												index = i;
+												break;
+											}
+										}
+										roomsPlayerList.splice(index,1);
+										//update rooms with updated string array
+										mySqlModule.update("rooms", "rooms_playerList= '" + roomsPlayerList.toString() + "'", "id = '" + currentRoomResult[0].id + "'", function(){
+											mySqlModule.delete("characters", "id = '" + socket.temp.characterToRemove + "'", function(result){
+												shortcutModule.messageToClient(socket, "Character deleted!");
+												characterSelectScreen(socket); 
+											})
+										})
+									})	
 								})
-							})
-						})	
-					})
-				})
-			}, 
-			function(){
-				characterSelectScreen(socket);
+						},
+						function(){
+						shortcutModule.messageToClient(socket, "Character delete cancelled.");
+						characterSelectScreen(socket);
+						})
+				}else{
+					shortcutModule.messageToClient(socket, "<color:red>Invalid action. Cannot delete a nonexistent character.");
+					characterSelectScreen(socket);
+				}
 			})
-	}
-	else{
+	}else{
 		shortcutModule.messageToClient(socket, "Please enter 1, 2, or 3 to load a character or del 1, del 2 , or del 3 to delete a character.");
 		characterSelectScreen(socket);
 	}
