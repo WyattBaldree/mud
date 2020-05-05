@@ -82,7 +82,7 @@ function printMessageToLog(msg){
 		if(/^<color:(?:red|blue|green|yellow|white|orange|purple)>$/gi.test(messageMinusCommands[i])){
 			let color = messageMinusCommands[i].substring(messageMinusCommands[i].indexOf(':') + 1, messageMinusCommands[i].indexOf('>'));
 			console.log(color);
-			messageMinusCommands[i] = '<span style="color: ' + color + ';">';
+			messageMinusCommands[i] = '<span  style="color: ' + color + ';">';
 		}
 		else if(/<\/color>/gi.test(messageMinusCommands[i])){
 			 messageMinusCommands[i] = "</span>";
