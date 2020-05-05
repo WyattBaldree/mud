@@ -70,8 +70,8 @@ function printMessageToLog(msg){
 	}
 
 	let li = document.createElement("li")
-
-	let regex = /(<br>|<b>|<strong>|<i>|<em>|<del>|<ins>|<sub>|<sup>)/gi;
+//(?:red|blue|green|yellow|white|orange|purple)
+	let regex = /(<\/?br>|<\/?b>|<\/?strong>|<\/?i>|<\/?em>|<\/?del>|<\/?ins>|<\/?sub>|<\/?sup>|<color:(?:red|blue|green|yellow|white|orange|purple)>|<\/color>)/gi;
 	let messageMinusCommands = msg.split(regex);
 	console.log(msg);
 	console.log(messageMinusCommands);
@@ -79,8 +79,15 @@ function printMessageToLog(msg){
 	let finalMsg = "";
 
 	for(let i = 0 ; i < messageMinusCommands.length ; i++){
-
-		if(!/^(<br>|<b>|<strong>|<i>|<em>|<del>|<ins>|<sub>|<sup>)$/gi.test(messageMinusCommands[i])){
+		if(/^<color:(?:red|blue|green|yellow|white|orange|purple)>$/gi.test(messageMinusCommands[i])){
+			let color = messageMinusCommands[i].substring(messageMinusCommands[i].indexOf(':') + 1, messageMinusCommands[i].indexOf('>'));
+			console.log(color);
+			messageMinusCommands[i] = '<span style="color: ' + color + ';">';
+		}
+		else if(/<\/color>/gi.test(messageMinusCommands[i])){
+			 messageMinusCommands[i] = "</span>";
+		}
+		else if(!/^(<\/?br>|<\/?b>|<\/?strong>|<\/?i>|<\/?em>|<\/?del>|<\/?ins>|<\/?sub>|<\/?sup>)$/gi.test(messageMinusCommands[i])){
 			messageMinusCommands[i] = messageMinusCommands[i].replace(/&/g, "&amp;");
 			messageMinusCommands[i] = messageMinusCommands[i].replace(/</g, "&lt;");
 			messageMinusCommands[i] = messageMinusCommands[i].replace(/>/g, "&gt;");
