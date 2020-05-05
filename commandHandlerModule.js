@@ -21,6 +21,11 @@ exports.handleCommand = function(io, socket, command){
 		case "west":
 			moveDirection(io, socket, 3);
 			break;
+		case "look":
+			shortcutModule.getMyCharacter(socket, function(myCharacter){
+				shortcutModule.describeRoom(socket, myCharacter.characters_currentRoom);
+			});
+			break;
 		case "say":
 			shortcutModule.say(io, socket, "<b>" + socket.username + "</b>: " + commandArray[1]);
 			break;
@@ -32,7 +37,7 @@ exports.handleCommand = function(io, socket, command){
 				"<b>HELP:</b><br>" + 
 				"To use a command, type \"<command>;<param 1>;<param 2>;...\"<br>" + 
 				"For example: say;hello everyone<br>" + 
-				"The available commands are: say, dice");
+				"The available commands are: say, dice, look");
 			break;
 		default:
 			shortcutModule.messageToClient(socket, "<color:red>Invalid command try 'help'");

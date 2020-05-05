@@ -77,3 +77,9 @@ exports.messageToClient = function(socket, message){
 exports.messageToAll = function(io, message){
 	io.emit("chat message", message);
 }
+
+exports.getMyCharacter = function(socket, callback){
+	mySqlModule.select("*", "characters", "id = " + socket.currentCharacter, function(result){
+		callback(result[0]);
+	});
+}
