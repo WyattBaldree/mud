@@ -37,18 +37,31 @@ function handleCommand(e){
 		console.log(saved10messages);
 		if(currentMessageIndex > 0 && saved10messages[currentMessageIndex-1] != ""){
 			currentMessageIndex--;
+			commandLine.value = saved10messages[currentMessageIndex];
+			moveCursorToEnd(commandLine.value);
+			e.preventDefault();
 		}
-		console.log("currentmessage index: " + currentMessageIndex);
-		commandLine.value = saved10messages[currentMessageIndex];
+		
 	}
 	else if(e.code == "ArrowDown"){
 		console.log(saved10messages);
 		if(currentMessageIndex < 9){
 			currentMessageIndex++;
+			console.log("currentmessage index: " + currentMessageIndex);
+			commandLine.value = saved10messages[currentMessageIndex];
 		}
-		console.log("currentmessage index: " + currentMessageIndex);
-		commandLine.value = saved10messages[currentMessageIndex];
 	}
+}
+
+function moveCursorToEnd(el) {
+    if (typeof el.selectionStart == "number") {
+        el.selectionStart = el.selectionEnd = el.value.length;
+    } else if (typeof el.createTextRange != "undefined") {
+        el.focus();
+        var range = el.createTextRange();
+        range.collapse(false);
+        range.select();
+    }
 }
 
 function openPrompt(){

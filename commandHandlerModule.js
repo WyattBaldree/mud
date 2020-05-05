@@ -27,7 +27,7 @@ exports.handleCommand = function(io, socket, command){
 			});
 			break;
 		case "say":
-			shortcutModule.say(io, socket, "<b>" + socket.username + "</b>: " + commandArray[1]);
+			shortcutModule.say(io, socket, commandArray[1]);
 			break;
 		case "dice":
 			rollDice(io, socket, commandArray);
