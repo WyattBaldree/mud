@@ -1,5 +1,5 @@
 const mySqlModule = require('./mySqlModule');
-function getAllPlayersInRoom(room, callback){
+exports.getAllPlayersInRoom = function(room, callback){
 	//return a list of all players in the room provided
 	mySqlModule.select("rooms_playerList", "rooms", "id = " + room, function(result){
 		let playerList = result[0].rooms_playerList.split(",");
@@ -67,7 +67,7 @@ exports.messageInRoom = function(io,roomId, message){
 		for(let player of playerList){
 			for(let socket of socketList){
 				if(socket.currentCharacter == player){
-					messageToClient(socket, message);
+					exports.messageToClient(socket, message);
 				}
 			}
 		}
