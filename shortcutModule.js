@@ -1,10 +1,45 @@
 const mySqlModule = require('./mySqlModule');
-function getAllPlayersInRoom(room, callback){
+exports.getAllPlayersInRoom = function(room, callback){
 	//return a list of all players in the room provided
 	mySqlModule.select("rooms_playerList", "rooms", "id = " + room, function(result){
 		let playerList = result[0].rooms_playerList.split(",");
 		callback(playerList);
 	});
+}
+
+exports.getAllPlayersInRoomOnline = function(io, room, callback){
+	exports.getAllPlayersInRoom(room, function(playerList){
+		let connectedPlayerList = [];
+		let connectedSockets = exports.getAllConnectedSockets(io);
+		for(player of playerList){
+			//if player or id is in socket list push to connectedPlayerList
+			if(player == connectedSockets.currentCharacter){
+				connectedPlayerList.push(player);
+			}
+		}
+		callback(connectedPlayerList);
+	})
+}
+
+exports.getCharacterFromSocket = function(socket,callback){
+	//socket.currentCharacter is called at character load in promptHandlerModule
+	mySqlModule.select("*", "characters", "id = '" + socket.currentCharacter + "''", function(result){
+		if (result.length >= 0){
+			callback(result[0]);
+		}else{
+			callback(null);
+		}
+	})
+}
+
+exports.getSocketFromCharacter = function(io, characterId, callback){
+	let sockets = exports.getAllConnectedSockets(io);
+	for(let s of sockets){
+		if(s.currentCharacter == characterId){
+			return s;
+		}
+	}
+	return null;
 }
 
 exports.getAllConnectedSockets = function(io){
@@ -29,10 +64,10 @@ exports.describeRoom = function(socket, roomId){
 			}else{
 				roomDescription += "<br>You are alone.";
 			}
-			
+
 
 			socket.emit('chat message', roomDescription);
-		});		
+		});
 	});
 }
 
@@ -62,16 +97,13 @@ exports.say = function(io, socket, message){
 }
 
 exports.messageInRoom = function(io,roomId, message){
-	exports.getAllPlayersInRoom(roomId, function(playerList){
-		let socketList = exports.getAllConnectedSockets(io);
-		for(let player of playerList){
-			for(let socket of socketList){
-				if(socket.currentCharacter == player){
-					messageToClient(socket, message);
-				}
-			}
-		}
-	});
+	exports.getAllPlayersInRoomOnline(io, room, function(connectedPlayerList){
+		for(connectedPlayer of connectedPlayerList){
+			exports.getSocketFromCharacter(io, connectedPlayer, function(socket){
+				exports.messageToClient(socket, message);
+			})
+		}	
+	})
 }
 
 exports.messageToClient = function(socket, message){
