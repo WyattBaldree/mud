@@ -8,6 +8,7 @@ const commandHandlerModule = require('./commandHandlerModule');
 const promptHandlerModule = require('./promptHandlerModule');
 const shortcutModule = require('./shortcutModule');
 const mySqlModule = require('./mySqlModule');
+const loopModule = require('./loopModule');
 // serve files from the public directory
 app.use(express.static('public'));
 
@@ -21,11 +22,6 @@ io.on('connection', (socket) => {
 	socket.on('disconnect', disconnect);
 	socket.on('command', handleCommand);
 	socket.on('prompt reply', handlePromptReply);
-
-	//example of multitable select
-	/*mySqlModule.select("b.classes_name, c.races_name", "characters a, classes b, races c", "7 = a.id AND a.characters_class = b.id AND c.races_name = a.characters_race",function(result){
-		console.log(result);
-	} );*/
 });
 
 // start the express web server listening on 3000
@@ -37,6 +33,8 @@ http.listen(3000, (req, res) => {
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/clientInterface.html');
 });
+
+loopModule.drip(io);
 
 function disconnect(){
 	console.log('user disconnected');
