@@ -69,8 +69,6 @@ function handlePromptReply(socket, promptType, promptReply, exitPromptType = "")
 	}
 }
 
-
-
 function regAccount(socket, promptType, promptReply){
 	socket.userId = -1;
 	socket.currentCharacter = -1;
