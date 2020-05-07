@@ -72,6 +72,8 @@ function handlePromptReply(socket, promptType, promptReply, exitPromptType = "")
 
 
 function regAccount(socket, promptType, promptReply){
+	socket.userId = -1;
+	socket.currentCharacter = -1;
 	switch(promptReply.toLowerCase()){
 		case "d":
 		case "debug":
@@ -210,6 +212,7 @@ function login(socket, userId){
 }
 
 function characterSelectScreen(socket){//redo  with new multiselect
+	socket.currentCharacter = -1;
 	mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(userResult){
 		mySqlModule.select("*", "characters", "", function(characterResult){
 			mySqlModule.select("*", "classes", "", function(classResult){
