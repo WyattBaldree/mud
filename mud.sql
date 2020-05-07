@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.2
+-- version 4.9.0.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 04, 2020 at 04:39 PM
--- Server version: 10.4.11-MariaDB
--- PHP Version: 7.4.1
+-- Generation Time: May 07, 2020 at 10:01 PM
+-- Server version: 10.4.6-MariaDB
+-- PHP Version: 7.3.9
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -46,7 +46,8 @@ INSERT INTO `characters` (`id`, `characters_firstName`, `characters_lastName`, `
 (1, 'Fendryn', 'Telvanni', 1, 1, 1),
 (6, 'Jeff', 'Barus', 0, 0, 1),
 (7, 'deathwing', 'wing', 1, 0, 1),
-(9, 'Banjo', 'Man', 0, 0, 0);
+(9, 'Banjo', 'Man', 0, 0, 0),
+(10, 'deathwing', 'wing', 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -114,8 +115,15 @@ CREATE TABLE `rooms` (
 --
 
 INSERT INTO `rooms` (`id`, `rooms_name`, `rooms_description`, `rooms_north`, `rooms_east`, `rooms_south`, `rooms_west`, `rooms_playerList`) VALUES
-(0, 'testRoom', 'You stand in the center of a large dimly lit room. You see an exit to the north.', 1, -1, -1, -1, '9,'),
-(1, 'Town Square', 'You enter the town square. You see a strange room to the south.', -1, -1, 0, -1, '7,0,6,1,');
+(0, 'CenterRoom', 'You stand in the center of a large dimly lit room. You see an exit to the north, south, east, and west.', 1, 3, 5, 7, ''),
+(1, 'NorthRoom', 'You enter the town square but you do not hear anything or anyone.', -1, 2, 0, 8, ''),
+(2, 'NorthEastCorner', 'You enter an empty room that is faintly warm.', -1, -1, 3, 1, ''),
+(3, 'EastRoom', 'You enter a hot room and start to sweat.', 2, -1, 4, 0, ''),
+(4, 'SouthEastCorner', 'You enter a room that is faintly warm with a sweet smell.', 3, -1, -1, 5, ''),
+(5, 'SouthRoom', 'You enter a room but do not see anything.', 0, 4, -1, 6, ''),
+(6, 'SouthWestCorner', 'You enter a room with a slight breeze.', 7, 5, -1, -1, ''),
+(7, 'WestRoom', 'An empty room. It\'s very windy.', 8, 0, 6, -1, ''),
+(8, 'NorthWestCorner', 'An empty room with no apparent life.', -1, 1, 7, -1, '');
 
 -- --------------------------------------------------------
 
@@ -137,7 +145,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `users_username`, `users_password`, `users_characters`) VALUES
 (0, 'Default', 'Default1!', '0,6,-1'),
 (1, 'Banjoman64', 'werter@5S', '1,-1,-1'),
-(14, 'den', 'Rusty1!', '-1,-1,7'),
+(14, 'den', 'Rusty1!', '10,-1,7'),
 (20, 'Banjo', 'werter@5S', '-1,-1,-1'),
 (21, 'Banjoman65', 'werter@5S', '9,-1,-1');
 
@@ -183,7 +191,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `characters`
 --
 ALTER TABLE `characters`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `classes`
@@ -201,7 +209,7 @@ ALTER TABLE `races`
 -- AUTO_INCREMENT for table `rooms`
 --
 ALTER TABLE `rooms`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `users`

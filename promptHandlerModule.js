@@ -30,7 +30,7 @@ function handlePromptReply(socket, promptType, promptReply, exitPromptType = "")
 		case "accountInitialization":
 			regAccount(socket, promptType, promptReply);
 			break;
-		case "regUsername":	
+		case "regUsername":
 			regUsername(socket, promptType, promptReply);
 			break;
 		case "regPassword":
@@ -65,7 +65,7 @@ function handlePromptReply(socket, promptType, promptReply, exitPromptType = "")
 			break;
 		default:
 			console.log("Prompt type, " + promptType + ", not recognized.");
-			break;	
+			break;
 	}
 }
 
@@ -103,10 +103,10 @@ function regAccount(socket, promptType, promptReply){
 
 function regUsername(socket, promptType, promptReply){
 	if(!isUsernameValid(promptReply)){
-		shortcutModule.messageToClient(socket, "<color:red>Username Invalid. Username requires:<br>" + 
+		shortcutModule.messageToClient(socket, "<color:red>Username Invalid. Username requires:<br>" +
 									">at least 3 characters<br>" +
 									">no more than 16 characters<br>" +
-									">none of the following: ~`!@#$%^&*+=-[]\';,\\/{}|\":<>?()._" 
+									">none of the following: ~`!@#$%^&*+=-[]\';,\\/{}|\":<>?()._"
 					);
 		socket.emit('prompt request', 'regUsername', "Register your username: ", "accountInitialization");
 	}
@@ -131,13 +131,13 @@ function isUsernameValid(username){
 	return !/[\s~`!@#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?()\._]/g.test(username) && username.length <= 16 && username.length >=3;
 }
 
-function isNameValid(username){
-	return !/[\d\s~`!@#$%\^&*+=\\[\]\\';,/{}|\\":<>\?()\._]/g.test(username) && username.length <= 16 && username.length >=3;
+function isNameValid(name){
+	return !/[\d\s~`!@#$%\^&*+=\\[\]\\';,/{}|\\":<>\?()\._]/g.test(name) && name.length <= 16 && name.length >=3;
 }
 
 function isPasswordValid(password){
 	//Password requires at least 1 lower case character, 1 upper case character, 1 number, 1 special character and must be at least 6 characters and at most 18
-	let passwordRequire = new RegExp('((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W_]).{6,})'); 
+	let passwordRequire = new RegExp('((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W_]).{6,})');
 	if(password.match(passwordRequire) && password.length <=18){
 		return true;
 	}
@@ -151,7 +151,7 @@ function regPassword(socket, promptType, promptReply){
 		shortcutModule.messageToClient(socket, "Account successfully created.")
 		socket.emit('prompt request', 'accountInitialization', "Login or Register?", "accountInitialization");
 	}else{
-		shortcutModule.messageToClient(socket, "<color:red>Password Invalid. Password requires:<br>" + 
+		shortcutModule.messageToClient(socket, "<color:red>Password Invalid. Password requires:<br>" +
 									">at least 1 lower case character<br>" +
 									">at least 1 upper case character<br>" +
 									">at least 6 characters<br>" +
@@ -186,7 +186,7 @@ function loginPassword(socket, promptType, promptReply){
 
 	let where = "users_username = '" + socket.temp.username + "' AND users_password = '" + promptReply +"'";
 	mySqlModule.select("*", "users", where, loginPasswordCallback, promptReply, socket);
-	
+
 }
 
 function loginPasswordCallback(result, password, socket){
@@ -259,7 +259,7 @@ function characterInitialization(socket, promptType, promptReply){
 				let characterIds = currentUserResult[0].users_characters.split(",");
 				socket.temp.characterToRemove = characterIds[socket.temp.currentCharacterSlot - 1];
 				if(socket.temp.characterToRemove != -1){
-					confirmPrompt(socket, "are you sure you want to delete your character in slot " + socket.temp.currentCharacterSlot + "? (Y/N)", "characterSelectScreen", 
+					confirmPrompt(socket, "are you sure you want to delete your character in slot " + socket.temp.currentCharacterSlot + "? (Y/N)", "characterSelectScreen",
 						function(){
 						//select user to open character string array
 								characterIds[socket.temp.currentCharacterSlot - 1] = -1;
@@ -282,10 +282,10 @@ function characterInitialization(socket, promptType, promptReply){
 										mySqlModule.update("rooms", "rooms_playerList= '" + roomsPlayerList.toString() + "'", "id = '" + currentRoomResult[0].id + "'", function(){
 											mySqlModule.delete("characters", "id = '" + socket.temp.characterToRemove + "'", function(result){
 												shortcutModule.messageToClient(socket, "Character deleted!");
-												characterSelectScreen(socket); 
+												characterSelectScreen(socket);
 											})
 										})
-									})	
+									})
 								})
 						},
 						function(){
@@ -301,23 +301,36 @@ function characterInitialization(socket, promptType, promptReply){
 		shortcutModule.messageToClient(socket, "Please enter 1, 2, or 3 to load a character or del 1, del 2 , or del 3 to delete a character.");
 		characterSelectScreen(socket);
 	}
-	
+
+}
+
+function checkForUniqueName(firstname, lastname, callback1, callback2){
+	mySqlModule.select("*", "characters", "characters_firstName = '" + firstname + "' AND characters_lastName = '" + lastname + "'", function(result){
+		console.log(result);
+		if(result.length > 0){
+			// player has the same name
+			callback1();
+		}else{
+			//player does not have the same name
+			callback2();
+		}
+	} )
 }
 
 function characterCreationFirstName(socket, promptType, promptReply){
 	socket.temp.firstname = promptReply;
-	if(isUsernameValid(socket.temp.firstname)){ //need isCharacterName regex to check for numbers and symbols except hyphen
-		confirmPrompt(socket, 'Is ' + socket.temp.firstname + ' okay? (Y/N)', "characterSelectScreen", 
-			function(){ 
+	if(isNameValid(socket.temp.firstname)){
+		confirmPrompt(socket, 'Is ' + socket.temp.firstname + ' okay? (Y/N)', "characterSelectScreen",
+			function(){
 				socket.emit('prompt request', 'characterCreationLastName', "What is your last name?", "characterSelectScreen");
-			}, 
+			},
 			function(){
 				socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?", "characterSelectScreen");
 			}
 		);
 	}else{
 		shortcutModule.messageToClient(socket, "<color:red>First Name is invalid.<br>" +
-					">First name should be between 0 and 16 characters<br>" +
+					">First name should be between 3 and 16 characters<br>" +
 					">Should only contain letters and hyphen"
 					);
 		socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?", "characterSelectScreen");
@@ -326,25 +339,34 @@ function characterCreationFirstName(socket, promptType, promptReply){
 
 function characterCreationLastName(socket, promptType, promptReply){
 	socket.temp.lastname = promptReply;
-	if(isUsernameValid(socket.temp.lastname)){ //need isCharacterName regex to check for numbers and symbols except hyphen
+	if(isNameValid(socket.temp.lastname)){
 		confirmPrompt(socket, 'Is ' + socket.temp.lastname + ' okay? (Y/N)', "characterSelectScreen",
-			function(){ 
-				mySqlModule.select("*", "races",  "", function(result, socket){
-				let availableRaces = result[0].races_name + "";
-				for(let i = 1; i < result.length; i++){
-					availableRaces += ", " + result[i].races_name;
-				}
-				shortcutModule.messageToClient(socket, "Available Chararacter Races: " + availableRaces);
-				socket.emit('prompt request', 'characterCreationRace', "What is your race?", "characterSelectScreen");
-				}, socket);
-			}, 
+			function(){
+				checkForUniqueName(socket.temp.firstname, socket.temp.lastname,
+					function(){ //name not unique
+						socket.temp.firstname = "";
+						socket.temp.lastname = "";
+						shortcutModule.messageToClient(socket, "<color:red>First name and surname are not unique.<br>Please try again.");
+						socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?", "characterSelectScreen");
+					},
+					function(){ //name unique
+						mySqlModule.select("*", "races",  "", function(result, socket){
+						let availableRaces = result[0].races_name + "";
+						for(let i = 1; i < result.length; i++){
+							availableRaces += ", " + result[i].races_name;
+						}
+						shortcutModule.messageToClient(socket, "Available Chararacter Races: " + availableRaces);
+						socket.emit('prompt request', 'characterCreationRace', "What is your race?", "characterSelectScreen");
+						}, socket);
+					})
+			},
 			function(){
 				socket.emit('prompt request', 'characterCreationLastName', "What is your last name?", "characterSelectScreen");
 			}
 		);
 	}else{
 		shortcutModule.messageToClient(socket, "<color:red>Last Name is invalid.<br>" +
-					">Last name should be between 0 and 16 characters<br>" +
+					">Last name should be between 3 and 16 characters<br>" +
 					">Should only contain letters and hyphen"
 					);
 		socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?", "characterSelectScreen");
@@ -357,7 +379,7 @@ function characterCreationRace(socket, promptType, promptReply){
 			socket.temp.raceid = result[0].id;
 			socket.temp.race = promptReply;
 			confirmPrompt(socket, 'Is ' + socket.temp.race + ' okay? (Y/N)', "characterSelectScreen",
-				function(){ 
+				function(){
 					mySqlModule.select("*", "classes",  "", function(result, socket){
 						let availableClasses = result[0].classes_name + "";
 						for(let i = 1; i < result.length; i++){
@@ -366,7 +388,7 @@ function characterCreationRace(socket, promptType, promptReply){
 					shortcutModule.messageToClient(socket, "Available Character Classes: " + availableClasses);
 					socket.emit('prompt request', 'characterCreationClass', "What is your class?", "characterSelectScreen")
 					}, socket);
-				}, 
+				},
 				function(){
 					socket.emit('prompt request', 'characterCreationRace', "What is your race?", "characterSelectScreen");
 				}
@@ -381,7 +403,7 @@ function characterCreationRace(socket, promptType, promptReply){
 				shortcutModule.messageToClient(socket, "<color:red>Available Chararacter Races: " + availableRaces);
 				socket.emit('prompt request', 'characterCreationRace', "What is your race?", "characterSelectScreen");
 			}, socket);
-		}	
+		}
 	}, socket);
 }
 
@@ -391,9 +413,9 @@ function characterCreationClass(socket, promptType, promptReply){
 			socket.temp.classid = result[0].id;
 			socket.temp.class = promptReply;
 			confirmPrompt(socket, 'Is ' + socket.temp.class + ' okay? (Y/N)', "characterSelectScreen",
-				function(){ 
+				function(){
 					characterCreationComplete(socket);
-				}, 
+				},
 				function(){
 					socket.emit('prompt request', 'characterCreationClass', "What is your class?", "characterSelectScreen")
 				}
@@ -408,20 +430,20 @@ function characterCreationClass(socket, promptType, promptReply){
 				shortcutModule.messageToClient(socket, "<color:red>Available Character Classes: " + availableClasses);
 				socket.emit('prompt request', 'characterCreationClass', "What is your class?", "characterSelectScreen")
 			}, socket);
-		}	
+		}
 	}, socket);
 }
 
 function characterCreationComplete(socket){
-	shortcutModule.messageToClient(socket, 	"<b>First Name: </b>" + socket.temp.firstname + 
-											"<br><b>last name: </b>" + socket.temp.lastname + 
-											"<br><b>race: </b>" + socket.temp.race + 
+	shortcutModule.messageToClient(socket, 	"<b>First Name: </b>" + socket.temp.firstname +
+											"<br><b>last name: </b>" + socket.temp.lastname +
+											"<br><b>race: </b>" + socket.temp.race +
 											"<br><b>class: </b>" + socket.temp.class);
 	confirmPrompt(socket, 'Are you okay with this? (Y/N)', "characterSelectScreen",
 		function(){
 			shortcutModule.messageToClient(socket, "<color:yellow><b>character function lol");
 			createCharacter(socket);
-		}, 
+		},
 		function(){
 			shortcutModule.messageToClient(socket, "Character creation restarted.");
 			socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?", "characterSelectScreen");
