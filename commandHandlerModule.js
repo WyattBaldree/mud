@@ -1,36 +1,48 @@
 const mySqlModule = require('./mySqlModule');
 const shortcutModule = require('./shortcutModule');
 
-exports.handleCommand = function(io, socket, command){
+
+var ioRef = null;
+exports.start = function(io) {
+	ioRef = io;
+    io.on('connection', function(socket) {
+		socket.on('command', function(command){
+			handleCommand(socket, command);
+		});
+    });
+};
+
+
+function handleCommand(socket, command){
 	let commandArray = command.split(";");
 
 	switch(commandArray[0].trim().toLowerCase()){
 		case "n":
 		case "north":
-			moveDirection(io, socket, 0);
+			moveDirection(socket, 0);
 			break;
 		case "e":
 		case "east":
-			moveDirection(io, socket, 1);
+			moveDirection(socket, 1);
 			break;
 		case "s":
 		case "south":
-			moveDirection(io, socket, 2);
+			moveDirection(socket, 2);
 			break;
 		case "w":
 		case "west":
-			moveDirection(io, socket, 3);
+			moveDirection(socket, 3);
 			break;
 		case "look":
 			shortcutModule.getMyCharacter(socket, function(myCharacter){
-				shortcutModule.describeRoom(io, socket, myCharacter.characters_currentRoom);
+				shortcutModule.describeRoom(socket, myCharacter.characters_currentRoom);
 			});
 			break;
 		case "say":
-			shortcutModule.say(io, socket, commandArray[1]);
+			shortcutModule.say(socket, commandArray[1]);
 			break;
 		case "dice":
-			rollDice(io, socket, commandArray);
+			rollDice(socket, commandArray);
 			break;
 		case "help":
 			shortcutModule.messageToClient(socket,
@@ -45,7 +57,7 @@ exports.handleCommand = function(io, socket, command){
 	}
 }
 
-function rollDice(io, socket, commandArray){
+function rollDice(socket, commandArray){
 	if(commandArray.length < 2){
 		shortcutModule.messageToClient(socket, "<color:red>Dice requires a parameter. Try \"dice;3d6\".");
 		return;
@@ -53,7 +65,7 @@ function rollDice(io, socket, commandArray){
 	let diceStr = commandArray[1].trim();
 	if(/\dd\d/g.test(diceStr)){
 		let diceValues = diceStr.split("d");
-		shortcutModule.say(io, socket, socket.username + " rolls " + diceStr + ".");
+		shortcutModule.say(socket, socket.username + " rolls " + diceStr + ".");
 		let total = 0
 		let totalStr = "";
 		for(let i = 0 ; i < diceValues[0] ; i++){
@@ -66,14 +78,14 @@ function rollDice(io, socket, commandArray){
 				totalStr += " + " + roll;
 			}
 		}
-		shortcutModule.say(io, socket, socket.username + " rolled " + total  + " (" + totalStr + ").");
+		shortcutModule.say(socket, socket.username + " rolled " + total  + " (" + totalStr + ").");
 	}
 	else{
 		shortcutModule.messageToClient(socket, "<color:red>\"" + commandArray[1] + "\" is not a valid dice type. Try \"dice;3d6\".");
 	}
 }
 
-exports.move = function(io, socket, toRoom, arriveMessage, leaveMessage){
+exports.move = function(socket, toRoom, arriveMessage, leaveMessage){
 
 	mySqlModule.select("a.*, b.rooms_north, b.rooms_east, b.rooms_south, b.rooms_west",
 		"characters a, rooms b",
@@ -86,12 +98,12 @@ exports.move = function(io, socket, toRoom, arriveMessage, leaveMessage){
 
 			
 			mySqlModule.moveCharacter(socket, toRoom, function(){
-				crossRoomsMessages(io, socket, fN, lN, currentRoom, toRoom, arriveMessage, leaveMessage);
+				crossRoomsMessages(socket, fN, lN, currentRoom, toRoom, arriveMessage, leaveMessage);
 			});
 		});
 }
 
-function moveDirection(io, socket, direction){
+function moveDirection(socket, direction){
 
 	mySqlModule.select("a.*, b.rooms_north, b.rooms_east, b.rooms_south, b.rooms_west",
 		"characters a, rooms b",
@@ -104,7 +116,7 @@ function moveDirection(io, socket, direction){
 			switch(direction){
 				case 0:
 					if(currentCharacterResult.rooms_north != -1){
-						exports.move(io, socket, currentCharacterResult.rooms_north, " enters the area from the south.", " leaves the area to the north.");
+						exports.move(socket, currentCharacterResult.rooms_north, " enters the area from the south.", " leaves the area to the north.");
 						return;
 					}else{
 						shortcutModule.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
@@ -112,7 +124,7 @@ function moveDirection(io, socket, direction){
 					break;
 				case 1:
 					if(currentCharacterResult.rooms_east != -1){
-						exports.move(io, socket, currentCharacterResult.rooms_east, " enters the area from the west.", " leaves the area to the east.");
+						exports.move(socket, currentCharacterResult.rooms_east, " enters the area from the west.", " leaves the area to the east.");
 						return;
 					}else{
 						shortcutModule.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
@@ -120,7 +132,7 @@ function moveDirection(io, socket, direction){
 					break;
 				case 2:
 					if(currentCharacterResult.rooms_south != -1){
-						exports.move(io, socket, currentCharacterResult.rooms_south, " enters the area from the north.", " leaves the area to the south.");
+						exports.move(socket, currentCharacterResult.rooms_south, " enters the area from the north.", " leaves the area to the south.");
 						return;
 					}else{
 						shortcutModule.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
@@ -128,7 +140,7 @@ function moveDirection(io, socket, direction){
 					break;
 				case 3:
 					if(currentCharacterResult.rooms_west != -1){
-						exports.move(io, socket, currentCharacterResult.rooms_west, " enters the area from the east.", " leaves the area to the west.");
+						exports.move(socket, currentCharacterResult.rooms_west, " enters the area from the east.", " leaves the area to the west.");
 						return;
 					}else{
 						shortcutModule.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
@@ -138,9 +150,9 @@ function moveDirection(io, socket, direction){
 
 		});
 }
-function crossRoomsMessages(io, socket, firstName, lastName, fromRoom, toRoom, arriveMessage, leaveMessage){
+function crossRoomsMessages(socket, firstName, lastName, fromRoom, toRoom, arriveMessage, leaveMessage){
 	mySqlModule.select("id, characters_currentRoom", "characters", "", function(charactersResult){
-		for(let currentSocket of shortcutModule.getAllConnectedSockets(io)){
+		for(let currentSocket of shortcutModule.getAllConnectedSockets()){
 			if(currentSocket.currentCharacter != null && currentSocket.userId != socket.userId){
 				//this socket is logged in as a character and is not the socket thatis  doing the move.
 				let currentSocketCharacter = charactersResult.find(element => element.id == currentSocket.currentCharacter);
@@ -155,6 +167,6 @@ function crossRoomsMessages(io, socket, firstName, lastName, fromRoom, toRoom, a
 				}
 			}
 		}
-		shortcutModule.describeRoom(io, socket, toRoom);
+		shortcutModule.describeRoom(socket, toRoom);
 	});
 }

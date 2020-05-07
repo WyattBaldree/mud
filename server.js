@@ -4,11 +4,15 @@ const app = express();
 const http = require("http").createServer(app);
 var io = require('socket.io')(http);
 
-const commandHandlerModule = require('./commandHandlerModule');
-const promptHandlerModule = require('./promptHandlerModule');
-const shortcutModule = require('./shortcutModule');
 const mySqlModule = require('./mySqlModule');
+const commandHandlerModule = require('./commandHandlerModule');
+commandHandlerModule.start(io);
+const promptHandlerModule = require('./promptHandlerModule');
+promptHandlerModule.start(io);
+const shortcutModule = require('./shortcutModule');
+shortcutModule.start(io);
 const loopModule = require('./loopModule');
+loopModule.start(io);
 // serve files from the public directory
 app.use(express.static('public'));
 
@@ -17,11 +21,8 @@ io.on('connection', (socket) => {
 
 	socket.username = "unset";
 	socket.emit('client connected');
-	//socket.emit('prompt request', "username", "Enter username: ");
 
 	socket.on('disconnect', disconnect);
-	socket.on('command', handleCommand);
-	socket.on('prompt reply', handlePromptReply);
 });
 
 // start the express web server listening on 3000
@@ -34,17 +35,9 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/clientInterface.html');
 });
 
-//loopModule.drip(io);
+loopModule.drip();
 
 function disconnect(){
 	console.log('user disconnected');
-	shortcutModule.messageToAll(io, this.username + " has disconnected");
-}
-
-function handleCommand(command){
-	commandHandlerModule.handleCommand(io, this, command);
-}
-
-function handlePromptReply(promptType, promptReply, exitType){
-	promptHandlerModule.handlePromptReply(io, this, promptType, promptReply, exitType);
+	shortcutModule.messageToAll(this.username + " has disconnected");
 }

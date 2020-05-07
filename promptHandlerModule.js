@@ -7,7 +7,17 @@ const mySqlModule = require('./mySqlModule');
 const commandHandlerModule = require('./commandHandlerModule');
 const shortcutModule = require('./shortcutModule');
 
-exports.handlePromptReply = function(io, socket, promptType, promptReply, exitPromptType = ""){
+var ioRef = null;
+exports.start = function(io) {
+	ioRef = io;
+    io.on('connection', function(socket) {
+		socket.on('prompt reply', function(promptType, promptReply, exitType){
+			handlePromptReply(socket, promptType, promptReply, exitType);
+		});
+    });
+};
+
+function handlePromptReply(socket, promptType, promptReply, exitPromptType = ""){
 	if(promptReply.toLowerCase() == "exit"){
 		if(exitPromptType != ""){
 			promptType = exitPromptType
@@ -18,40 +28,40 @@ exports.handlePromptReply = function(io, socket, promptType, promptReply, exitPr
 
 	switch(promptType){
 		case "accountInitialization":
-			regAccount(io, socket, promptType, promptReply);
+			regAccount(socket, promptType, promptReply);
 			break;
 		case "regUsername":	
-			regUsername(io, socket, promptType, promptReply);
+			regUsername(socket, promptType, promptReply);
 			break;
 		case "regPassword":
-			regPassword(io, socket, promptType, promptReply);
+			regPassword(socket, promptType, promptReply);
 			break;
 		case "loginUsername":
-			loginUsername(io, socket, promptType, promptReply);
+			loginUsername(socket, promptType, promptReply);
 			break;
 		case "loginPassword":
-			loginPassword(io, socket, promptType, promptReply);
+			loginPassword(socket, promptType, promptReply);
 			break;
 		case "characterSelectScreen":
 			characterSelectScreen(socket);
 			break;
 		case "characterInitialization":
-			characterInitialization(io, socket, promptType, promptReply);
+			characterInitialization(socket, promptType, promptReply);
 			break;
 		case "characterCreationFirstName":
-			characterCreationFirstName(io, socket, promptType, promptReply);
+			characterCreationFirstName(socket, promptType, promptReply);
 			break;
 		case "characterCreationLastName":
-			characterCreationLastName(io, socket, promptType, promptReply);
+			characterCreationLastName(socket, promptType, promptReply);
 			break;
 		case "characterCreationRace":
-			characterCreationRace(io, socket, promptType, promptReply);
+			characterCreationRace(socket, promptType, promptReply);
 			break;
 		case "characterCreationClass":
-			characterCreationClass(io, socket, promptType, promptReply);
+			characterCreationClass(socket, promptType, promptReply);
 			break;
 		case "confirm":
-			confirm(io, socket, promptType, promptReply, exitPromptType);
+			confirm(socket, promptType, promptReply, exitPromptType);
 			break;
 		default:
 			console.log("Prompt type, " + promptType + ", not recognized.");
@@ -61,7 +71,7 @@ exports.handlePromptReply = function(io, socket, promptType, promptReply, exitPr
 
 
 
-function regAccount(io, socket, promptType, promptReply){
+function regAccount(socket, promptType, promptReply){
 	switch(promptReply.toLowerCase()){
 		case "d":
 		case "debug":
@@ -91,7 +101,7 @@ function regAccount(io, socket, promptType, promptReply){
 	}
 }
 
-function regUsername(io, socket, promptType, promptReply){
+function regUsername(socket, promptType, promptReply){
 	if(!isUsernameValid(promptReply)){
 		shortcutModule.messageToClient(socket, "<color:red>Username Invalid. Username requires:<br>" + 
 									">at least 3 characters<br>" +
@@ -133,7 +143,7 @@ function isPasswordValid(password){
 	}
 }
 
-function regPassword(io, socket, promptType, promptReply){
+function regPassword(socket, promptType, promptReply){
 	if(isPasswordValid(promptReply)){ //if promptReply is a valid password
 		socket.temp.password = promptReply;
 		mySqlModule.insert("users", "users_username, users_password", socket.temp.username + "','" + socket.temp.password, null);
@@ -151,7 +161,7 @@ function regPassword(io, socket, promptType, promptReply){
 	}
 }
 
-function loginUsername(io, socket, promptType, promptReply){
+function loginUsername(socket, promptType, promptReply){
 	if(!isUsernameValid(promptReply)){
 		shortcutModule.messageToClient(socket, "<color:red>Username Invalid.");
 		socket.emit('prompt request', 'loginUsername', "Enter your username: ", "accountInitialization");
@@ -172,7 +182,7 @@ function loginUsernameCallback(result, username, socket){
 	}
 }
 
-function loginPassword(io, socket, promptType, promptReply){
+function loginPassword(socket, promptType, promptReply){
 
 	let where = "users_username = '" + socket.temp.username + "' AND users_password = '" + promptReply +"'";
 	mySqlModule.select("*", "users", where, loginPasswordCallback, promptReply, socket);
@@ -222,7 +232,7 @@ function characterSelectScreen(socket){//redo  with new multiselect
 	});
 }
 
-function characterInitialization(io, socket, promptType, promptReply){
+function characterInitialization(socket, promptType, promptReply){
 	//regex expression to check if it's 1,2,3
 	let loadRegex = /^[123]$/;
 	let delRegex = /^(del )+[123]$/;
@@ -239,7 +249,7 @@ function characterInitialization(io, socket, promptType, promptReply){
 			}else{
 				//load character
 				shortcutModule.messageToClient(socket, "Loading character...");
-				commandHandlerModule.move(io, socket, 1, " pops into existence.", " fades before disappearing.");
+				commandHandlerModule.move(socket, 1, " pops into existence.", " fades before disappearing.");
 			}
 		});
 	}
@@ -294,7 +304,7 @@ function characterInitialization(io, socket, promptType, promptReply){
 	
 }
 
-function characterCreationFirstName(io, socket, promptType, promptReply){
+function characterCreationFirstName(socket, promptType, promptReply){
 	socket.temp.firstname = promptReply;
 	if(isUsernameValid(socket.temp.firstname)){ //need isCharacterName regex to check for numbers and symbols except hyphen
 		confirmPrompt(socket, 'Is ' + socket.temp.firstname + ' okay? (Y/N)', "characterSelectScreen", 
@@ -314,7 +324,7 @@ function characterCreationFirstName(io, socket, promptType, promptReply){
 	}
 }
 
-function characterCreationLastName(io, socket, promptType, promptReply){
+function characterCreationLastName(socket, promptType, promptReply){
 	socket.temp.lastname = promptReply;
 	if(isUsernameValid(socket.temp.lastname)){ //need isCharacterName regex to check for numbers and symbols except hyphen
 		confirmPrompt(socket, 'Is ' + socket.temp.lastname + ' okay? (Y/N)', "characterSelectScreen",
@@ -341,7 +351,7 @@ function characterCreationLastName(io, socket, promptType, promptReply){
 	}
 }
 
-function characterCreationRace(io, socket, promptType, promptReply){
+function characterCreationRace(socket, promptType, promptReply){
 	mySqlModule.select("*", "races",  "races_name = '" + promptReply + "'", function(result, socket){
 		if(result.length > 0){
 			socket.temp.raceid = result[0].id;
@@ -375,7 +385,7 @@ function characterCreationRace(io, socket, promptType, promptReply){
 	}, socket);
 }
 
-function characterCreationClass(io, socket, promptType, promptReply){
+function characterCreationClass(socket, promptType, promptReply){
 	mySqlModule.select("*", "classes",  "classes_name = '" + promptReply + "'", function(result, socket){
 		if(result.length > 0){
 			socket.temp.classid = result[0].id;
@@ -440,15 +450,15 @@ function createCharacter(socket){
 	//find associated character id
 }
 
-function confirm(io, socket, promptType, promptReply, exitPromptType){
+function confirm(socket, promptType, promptReply, exitPromptType){
 	switch(promptReply.toLowerCase()){
 		case "y":
 		case "yes":
-			socket.temp.yesCallback(io, socket);
+			socket.temp.yesCallback(socket);
 		break;
 		case "n":
 		case "no":
-			socket.temp.noCallback(io, socket);
+			socket.temp.noCallback(socket);
 		break;
 		default:
 		shortcutModule.messageToClient(socket, "<color:red>" + promptReply + ' is an invalid response. <br> >Try Y/N');
