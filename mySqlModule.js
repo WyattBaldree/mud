@@ -71,7 +71,7 @@ exports.delete = function(table, where, callback){
 		argumentArray.push(arguments[i]);
 	}
 
-	var sql = "DELETE FROM " + table + " WHERE " + where + ";"; 
+	var sql = "DELETE FROM " + table + " WHERE " + where + ";";
 	let query = con.query(sql, function(err,result){
 		if (err) throw err;
 		argumentArray.unshift(result);
@@ -81,7 +81,7 @@ exports.delete = function(table, where, callback){
 	})
 }
 
-exports.moveCharacter = function(socket, toRoom){
+exports.moveCharacter = function(socket, toRoom, callback){
 	exports.select(	"a.id, a.characters_currentRoom, b.rooms_playerList, b.rooms_description",
 	"characters a, rooms b", "b.id = a.characters_currentRoom",
 	function(result){
@@ -96,14 +96,15 @@ exports.moveCharacter = function(socket, toRoom){
 		}
 		exports.update("rooms", "rooms_playerList = '" + oldRoomPlayerList + "'", "id = '" + currentCharacterResult.characters_currentRoom + "'", function(){
 			exports.select(	"rooms_playerList, rooms_description",
-				"rooms", 
+				"rooms",
 				"id = " + toRoom,
 				function(toRoomResult){
 					let newRoomPlayerList = toRoomResult[0].rooms_playerList + socket.currentCharacter + ",";
-				
+
 					exports.update("rooms", "rooms_playerList = '" + newRoomPlayerList + "'", "id = '" + toRoom + "'", function(){
 						exports.update("characters", "characters_currentRoom = '" + toRoom + "'", "id = '" + socket.currentCharacter + "'", function(){
 							// Do something efter the move has completed.
+							callback();
 						});
 					});
 				});

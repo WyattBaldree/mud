@@ -8,11 +8,6 @@ const id = gameloop.setGameLoop(function(delta) {
 	    //console.log('Hi there! (frame=%s, delta=%s)', frameCount++, delta);
 }, 1000 / 30);
 
-class event{
-	constructor(secondsFromNow, callback){
-			this.callback = callback
-	}
-}
 
 exports.drip = function(io){
 	shortcutModule.messageInRoom(io, 0, "<color:blue><sub>*drip*");

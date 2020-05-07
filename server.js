@@ -34,7 +34,7 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/clientInterface.html');
 });
 
-loopModule.drip(io);
+//loopModule.drip(io);
 
 function disconnect(){
 	console.log('user disconnected');
@@ -48,4 +48,3 @@ function handleCommand(command){
 function handlePromptReply(promptType, promptReply, exitType){
 	promptHandlerModule.handlePromptReply(io, this, promptType, promptReply, exitType);
 }
-

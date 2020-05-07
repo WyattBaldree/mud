@@ -1,7 +1,7 @@
 const mySqlModule = require('./mySqlModule');
 exports.getAllPlayersInRoom = function(room, callback){
 	//return a list of all players in the room provided
-	mySqlModule.select("rooms_playerList", "rooms", "id = " + room, function(result){
+	mySqlModule.select("rooms_playerList", "rooms", "id = '" + room + "'", function(result){
 		let playerList = result[0].rooms_playerList.split(",");
 		callback(playerList);
 	});
@@ -11,12 +11,18 @@ exports.getAllPlayersInRoomOnline = function(io, room, callback){
 	exports.getAllPlayersInRoom(room, function(playerList){
 		let connectedPlayerList = [];
 		let connectedSockets = exports.getAllConnectedSockets(io);
-		for(player of playerList){
+		for(let player of playerList){
 			//if player or id is in socket list push to connectedPlayerList
-			if(player == connectedSockets.currentCharacter){
-				connectedPlayerList.push(player);
+			//loop through connectedPlayer playerlist
+			for(let i = 0 ; i < connectedSockets.length ; i++){
+
+				if(connectedSockets[i].currentCharacter == player){
+					connectedPlayerList.push(player);
+
+				}
 			}
 		}
+		console.log("playerlist" + connectedPlayerList);
 		callback(connectedPlayerList);
 	})
 }
@@ -50,23 +56,38 @@ exports.getAllConnectedSockets = function(io){
 	return sockets;
 }
 
-exports.describeRoom = function(socket, roomId){
+exports.describeRoom = function(io, socket, roomId){
 	mySqlModule.select("rooms_description, rooms_playerList", "rooms", "id = " + roomId, function(result){
 		let roomDescription = result[0].rooms_description;
+		console.log("playersincurrentroom" + result[0].rooms_playerList);
 
-		mySqlModule.select("characters_firstName, characters_lastName", "characters", "characters_currentRoom = " + roomId, function(charactersResult){
+		mySqlModule.select("id, characters_firstName, characters_lastName", "characters", "characters_currentRoom = " + roomId, function(charactersResult){
 			if(charactersResult.length > 0){
-				roomDescription += "<br>You see the following players:"
-
-				for(let character of charactersResult){
-					roomDescription += "<br>     " + character.characters_firstName + " " + character.characters_lastName;
-				}
+				let charactersInRoomDescription = "";
+				//if characterid is in connectedPlayerList then add them
+				exports.getAllPlayersInRoomOnline(io, roomId, function(connectedPlayerList){
+					console.log("asdsada" + connectedPlayerList);
+					console.log("charactersResult" + charactersResult);
+					for(let character of charactersResult){
+						for(let i = 0; i < connectedPlayerList.length ; i++){
+							if(character.id == connectedPlayerList[i] && character.id != socket.currentCharacter){
+								if(charactersInRoomDescription == ""){
+									charactersInRoomDescription += "You see the following characters:";
+								}
+								charactersInRoomDescription += "<br>     " + character.characters_firstName + " " + character.characters_lastName;
+							}
+						}
+					}
+					if(charactersInRoomDescription == ""){
+						charactersInRoomDescription = "<br>You are alone.";
+					}
+					socket.emit('chat message', roomDescription + charactersInRoomDescription);
+				})
 			}else{
-				roomDescription += "<br>You are alone.";
+				let charactersInRoomDescription = "<br>You see no one.";
+				socket.emit('chat message', roomDescription + charactersInRoomDescription);
 			}
 
-
-			socket.emit('chat message', roomDescription);
 		});
 	});
 }
@@ -97,12 +118,12 @@ exports.say = function(io, socket, message){
 }
 
 exports.messageInRoom = function(io,roomId, message){
-	exports.getAllPlayersInRoomOnline(io, room, function(connectedPlayerList){
+	exports.getAllPlayersInRoomOnline(io, roomId, function(connectedPlayerList){
 		for(connectedPlayer of connectedPlayerList){
 			exports.getSocketFromCharacter(io, connectedPlayer, function(socket){
 				exports.messageToClient(socket, message);
 			})
-		}	
+		}
 	})
 }
 

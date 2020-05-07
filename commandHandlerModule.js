@@ -23,7 +23,7 @@ exports.handleCommand = function(io, socket, command){
 			break;
 		case "look":
 			shortcutModule.getMyCharacter(socket, function(myCharacter){
-				shortcutModule.describeRoom(socket, myCharacter.characters_currentRoom);
+				shortcutModule.describeRoom(io, socket, myCharacter.characters_currentRoom);
 			});
 			break;
 		case "say":
@@ -33,15 +33,15 @@ exports.handleCommand = function(io, socket, command){
 			rollDice(io, socket, commandArray);
 			break;
 		case "help":
-			shortcutModule.messageToClient(socket, 
-				"<b>HELP:</b><br>" + 
-				"To use a command, type \"<command>;<param 1>;<param 2>;...\"<br>" + 
-				"For example: say;hello everyone<br>" + 
+			shortcutModule.messageToClient(socket,
+				"<b>HELP:</b><br>" +
+				"To use a command, type \"<command>;<param 1>;<param 2>;...\"<br>" +
+				"For example: say;hello everyone<br>" +
 				"The available commands are: say, dice, look");
 			break;
 		default:
 			shortcutModule.messageToClient(socket, "<color:red>Invalid command try 'help'");
-			break;	
+			break;
 	}
 }
 
@@ -75,8 +75,8 @@ function rollDice(io, socket, commandArray){
 
 exports.move = function(io, socket, toRoom, arriveMessage, leaveMessage){
 
-	mySqlModule.select("a.*, b.rooms_north, b.rooms_east, b.rooms_south, b.rooms_west", 
-		"characters a, rooms b", 
+	mySqlModule.select("a.*, b.rooms_north, b.rooms_east, b.rooms_south, b.rooms_west",
+		"characters a, rooms b",
 		"b.id = a.characters_currentRoom",
 		function(result){
 			let currentCharacterResult = result.find(element => element.id == socket.currentCharacter);
@@ -84,15 +84,17 @@ exports.move = function(io, socket, toRoom, arriveMessage, leaveMessage){
 			let lN = currentCharacterResult.characters_lastName;
 			let currentRoom = currentCharacterResult.characters_currentRoom;
 
-			crossRoomsMessages(io, socket, fN, lN, currentRoom, toRoom, arriveMessage, leaveMessage);
-			mySqlModule.moveCharacter(socket, toRoom);
+			
+			mySqlModule.moveCharacter(socket, toRoom, function(){
+				crossRoomsMessages(io, socket, fN, lN, currentRoom, toRoom, arriveMessage, leaveMessage);
+			});
 		});
 }
 
 function moveDirection(io, socket, direction){
 
-	mySqlModule.select("a.*, b.rooms_north, b.rooms_east, b.rooms_south, b.rooms_west", 
-		"characters a, rooms b", 
+	mySqlModule.select("a.*, b.rooms_north, b.rooms_east, b.rooms_south, b.rooms_west",
+		"characters a, rooms b",
 		"b.id = a.characters_currentRoom",
 		function(result){
 			let currentCharacterResult = result.find(element => element.id == socket.currentCharacter);
@@ -153,7 +155,6 @@ function crossRoomsMessages(io, socket, firstName, lastName, fromRoom, toRoom, a
 				}
 			}
 		}
+		shortcutModule.describeRoom(io, socket, toRoom);
 	});
-	
-	shortcutModule.describeRoom(socket, toRoom);
 }
