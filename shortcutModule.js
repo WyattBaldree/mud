@@ -287,3 +287,7 @@ exports.getMyCharacter = function(socket, callback){
 		callback(result[0]);
 	});
 }
+
+exports.capitalizeFirstLetter = function(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
