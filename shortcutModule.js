@@ -19,7 +19,7 @@ exports.login = function(socket){
 
 exports.loadCharacter = function(socket, characterId){
 	socket.currentCharacter = characterId;
-	exports.getCharacterFromSocket(socket, function(character){	
+	exports.getCharacterFromSocket(socket, function(character){
 		exports.messageToClient(socket, "Welcome, " + character.characters_firstName + " " + character.characters_lastName + ".");
 		exports.move(socket, 1, " pops into existence.", " fades before disappearing.");
 	});
@@ -93,7 +93,7 @@ exports.move = function(socket, toRoom, arriveMessage, leaveMessage){
 			let lN = currentCharacterResult.characters_lastName;
 			let currentRoom = currentCharacterResult.characters_currentRoom;
 
-			
+
 			exports.moveCharacter(socket, toRoom, function(){
 				crossRoomsMessages(socket, fN, lN, currentRoom, toRoom, arriveMessage, leaveMessage);
 			});
@@ -196,6 +196,7 @@ function crossRoomsMessages(socket, firstName, lastName, fromRoom, toRoom, arriv
 				}
 			}
 		}
+		exports.describeRoomNameMoving(socket, toRoom);
 		exports.describeRoom(socket, toRoom);
 	});
 }
@@ -203,15 +204,11 @@ function crossRoomsMessages(socket, firstName, lastName, fromRoom, toRoom, arriv
 exports.describeRoom = function(socket, roomId){
 	mySqlModule.select("rooms_description, rooms_playerList", "rooms", "id = " + roomId, function(result){
 		let roomDescription = result[0].rooms_description;
-		console.log("playersincurrentroom" + result[0].rooms_playerList);
-
 		mySqlModule.select("id, characters_firstName, characters_lastName", "characters", "characters_currentRoom = " + roomId, function(charactersResult){
 			if(charactersResult.length > 0){
 				let charactersInRoomDescription = "";
 				//if characterid is in connectedPlayerList then add them
 				exports.getAllPlayersInRoomOnline(roomId, function(connectedPlayerList){
-					console.log("asdsada" + connectedPlayerList);
-					console.log("charactersResult" + charactersResult);
 					for(let character of charactersResult){
 						for(let i = 0; i < connectedPlayerList.length ; i++){
 							if(character.id == connectedPlayerList[i] && character.id != socket.currentCharacter){
@@ -222,24 +219,28 @@ exports.describeRoom = function(socket, roomId){
 							}
 						}
 					}
-					if(charactersInRoomDescription == ""){
+					/*if(charactersInRoomDescription == ""){
 						charactersInRoomDescription = "<br>You are alone.";
-					}
+					}*/
 					socket.emit('chat message', roomDescription + charactersInRoomDescription);
 				})
 			}else{
 				let charactersInRoomDescription = "<br>You see no one.";
 				socket.emit('chat message', roomDescription + charactersInRoomDescription);
 			}
-
 		});
+	});
+}
+
+exports.describeRoomNameMoving = function(socket, roomId){
+	mySqlModule.select("rooms_name, rooms_description, rooms_playerList", "rooms", "id = " + roomId, function(result){
+		let roomNameDescription = result[0].rooms_name;
+		socket.emit('chat message', "You enter " + roomNameDescription + ".");
 	});
 }
 
 exports.say = function(socket, message){
 	let socketList = exports.getAllConnectedSockets();
-
-
 	//find all characters in same room.
 		//check if each character has a socket currently controlling it.
 			//if so, say to them.
@@ -283,7 +284,7 @@ exports.messageToAll = function(message){
 }
 
 exports.getMyCharacter = function(socket, callback){
-	mySqlModule.select("*", "characters", "id = " + socket.currentCharacter, function(result){
+	mySqlModule.select("*", "characters", "id = '" + socket.currentCharacter + "'", function(result){
 		callback(result[0]);
 	});
 }

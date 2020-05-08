@@ -156,7 +156,8 @@ function regPassword(socket, promptType, promptReply){
 									">at least 1 lower case character<br>" +
 									">at least 1 upper case character<br>" +
 									">at least 6 characters<br>" +
-									">no more than 18 characters"
+									">no more than 18 characters<br>" +
+									">at least 1 special character"
 					);
 		socket.emit('prompt request', 'regPassword', "Register your password: ", "accountInitialization");
 	}
@@ -205,7 +206,7 @@ function login(socket, userId){
 		socket.temp.username = result[0].users_username;
 
 		shortcutModule.messageToClient(socket, 'Password accepted.');
-		
+
 		shortcutModule.login(socket);
 		characterSelectScreen(socket);
 	});

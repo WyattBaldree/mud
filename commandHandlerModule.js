@@ -40,7 +40,11 @@ function handleCommand(socket, command){
 			});
 			break;
 		case "say":
-			shortcutModule.say(socket, commandArray[1]);
+			if (commandArray.length > 1){
+				shortcutModule.say(socket, commandArray[1]);
+			}else{
+				shortcutModule.messageToClient(socket, "<color:red>Invalid command try 'say;<message>'");
+			}
 			break;
 		case "dice":
 			rollDice(socket, commandArray);
@@ -69,20 +73,27 @@ function rollDice(socket, commandArray){
 	let diceStr = commandArray[1].trim();
 	if(/\dd\d/g.test(diceStr)){
 		let diceValues = diceStr.split("d");
-		shortcutModule.say(socket, socket.username + " rolls " + diceStr + ".");
-		let total = 0
-		let totalStr = "";
-		for(let i = 0 ; i < diceValues[0] ; i++){
-			let roll = Math.ceil(Math.random() * diceValues[1]);
-			total += roll;
-			if(i == 0){
-				totalStr += roll;
+		console.log("AAAAAAAAAAAAAA");
+		console.log("socket current character"  + socket.currentCharacter);
+		shortcutModule.getMyCharacter(socket, function(myCharacter){
+			console.log("mycharacter" + myCharacter);
+			let currentRoom = myCharacter.characters_currentRoom;
+			let charactersName = myCharacter.characters_firstName + " " + myCharacter.characters_lastName;
+			shortcutModule.messageInRoom(currentRoom, charactersName + " rolls " + diceStr + ".")
+			let total = 0;
+			let totalStr = "";
+			for(let i = 0 ; i < diceValues[0] ; i++){
+				let roll = Math.ceil(Math.random() * diceValues[1]);
+				total += roll;
+				if(i == 0){
+					totalStr += roll;
+				}
+				else{
+					totalStr += " + " + roll;
+				}
 			}
-			else{
-				totalStr += " + " + roll;
-			}
-		}
-		shortcutModule.say(socket, socket.username + " rolled " + total  + " (" + totalStr + ").");
+			shortcutModule.messageInRoom(currentRoom, charactersName + " rolled " + total  + " (" + totalStr + ").")
+		})
 	}
 	else{
 		shortcutModule.messageToClient(socket, "<color:red>\"" + commandArray[1] + "\" is not a valid dice type. Try \"dice;3d6\".");
