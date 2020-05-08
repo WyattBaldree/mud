@@ -218,11 +218,11 @@ function characterSelectScreen(socket){//redo  with new multiselect
 			let charactersInfo = "Your characters: ";
 			for(let i = 0 ; i < characterIds.length ; i++){
 				if(characterIds[i] == -1){
-					charactersInfo = charactersInfo + "<br>" + (i+1) + ") ------------- NEW CHARACTER -------------";
+					charactersInfo = charactersInfo + "<br><color:white>" + (i+1) + ") <color:green>------------- NEW CHARACTER -------------";
 				}else{
 					let characterObj = characterResult.find(element => element.id == characterIds[i]);
 					let classObj = templates.classes[characterObj.characters_class];
-					charactersInfo = charactersInfo + "<br>" + (i+1) + ") Name: " + characterObj.characters_firstName + " Class: " + classObj.name;
+					charactersInfo = charactersInfo + "<br><color:white>" + (i+1) + ")LVL.# <color:white>" + classObj.name + ": <color:green>" + characterObj.characters_firstName + " " + characterObj.characters_lastName;
 				}
 			}
 			shortcutModule.messageToClient(socket, charactersInfo);
@@ -317,7 +317,7 @@ function checkForUniqueName(firstname, lastname, callback1, callback2){
 }
 
 function characterCreationFirstName(socket, promptType, promptReply){
-	socket.temp.firstname = promptReply;
+	socket.temp.firstname = shortcutModule.capitalizeFirstLetter(promptReply);
 	if(isNameValid(socket.temp.firstname)){
 		confirmPrompt(socket, 'Is ' + socket.temp.firstname + ' okay? (Y/N)', "characterSelectScreen",
 			function(){
@@ -337,7 +337,7 @@ function characterCreationFirstName(socket, promptType, promptReply){
 }
 
 function characterCreationLastName(socket, promptType, promptReply){
-	socket.temp.lastname = promptReply;
+	socket.temp.lastname = shortcutModule.capitalizeFirstLetter(promptReply);
 	if(isNameValid(socket.temp.lastname)){
 		confirmPrompt(socket, 'Is ' + socket.temp.lastname + ' okay? (Y/N)', "characterSelectScreen",
 			function(){
@@ -374,7 +374,7 @@ function characterCreationRace(socket, promptType, promptReply){
 	let raceSelection = templates.races.find(element => element.name.toLowerCase() == promptReply.trim().toLowerCase());
 	if(raceSelection != null){
 		socket.temp.raceid = raceSelection.id;
-		socket.temp.race = promptReply;
+		socket.temp.race = shortcutModule.capitalizeFirstLetter(promptReply);
 		confirmPrompt(socket, 'Is ' + socket.temp.race + ' okay? (Y/N)', "characterSelectScreen",
 			function(){
 				let availableClasses = templates.classes[0].name + "";
@@ -403,7 +403,7 @@ function characterCreationClass(socket, promptType, promptReply){
 	let classSelection = templates.classes.find(element => element.name.toLowerCase() == promptReply.trim().toLowerCase());
 	if(classSelection != null){
 		socket.temp.classid = classSelection.id;
-		socket.temp.class = promptReply;
+		socket.temp.class = shortcutModule.capitalizeFirstLetter(promptReply);
 		confirmPrompt(socket, 'Is ' + socket.temp.class + ' okay? (Y/N)', "characterSelectScreen",
 			function(){
 				characterCreationComplete(socket);
