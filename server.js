@@ -16,6 +16,10 @@ loopModule.start(io);
 // serve files from the public directory
 app.use(express.static('public'));
 
+mySqlModule.update("users", "users_online = '0'", "", null);
+
+loopModule.drip();
+
 io.on('connection', (socket) => {
 	console.log('a user connected');
 
@@ -36,7 +40,6 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/clientInterface.html');
 });
 
-loopModule.drip();
 
 function disconnect(){
 	console.log('user disconnected');

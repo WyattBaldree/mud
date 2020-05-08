@@ -20,19 +20,19 @@ function handleCommand(socket, command){
 	switch(commandArray[0].trim().toLowerCase()){
 		case "n":
 		case "north":
-			moveDirection(socket, 0);
+			shortcutModule.moveDirection(socket, 0);
 			break;
 		case "e":
 		case "east":
-			moveDirection(socket, 1);
+			shortcutModule.moveDirection(socket, 1);
 			break;
 		case "s":
 		case "south":
-			moveDirection(socket, 2);
+			shortcutModule.moveDirection(socket, 2);
 			break;
 		case "w":
 		case "west":
-			moveDirection(socket, 3);
+			shortcutModule.moveDirection(socket, 3);
 			break;
 		case "look":
 			shortcutModule.getMyCharacter(socket, function(myCharacter){
@@ -46,7 +46,7 @@ function handleCommand(socket, command){
 			rollDice(socket, commandArray);
 			break;
 		case "logout":
-			logout(socket);
+			shortcutModule.logout(socket);
 			break;
 		case "help":
 			shortcutModule.messageToClient(socket,
@@ -59,10 +59,6 @@ function handleCommand(socket, command){
 			shortcutModule.messageToClient(socket, "<color:red>Invalid command try 'help'");
 			break;
 	}
-}
-
-function logout(socket){
-	socket.emit("prompt request" , "accountInitialization", "Login or Register?", "accountInitialization");
 }
 
 function rollDice(socket, commandArray){
@@ -91,90 +87,4 @@ function rollDice(socket, commandArray){
 	else{
 		shortcutModule.messageToClient(socket, "<color:red>\"" + commandArray[1] + "\" is not a valid dice type. Try \"dice;3d6\".");
 	}
-}
-
-exports.move = function(socket, toRoom, arriveMessage, leaveMessage){
-
-	mySqlModule.select("a.*, b.rooms_north, b.rooms_east, b.rooms_south, b.rooms_west",
-		"characters a, rooms b",
-		"b.id = a.characters_currentRoom",
-		function(result){
-			let currentCharacterResult = result.find(element => element.id == socket.currentCharacter);
-			let fN = currentCharacterResult.characters_firstName;
-			let lN = currentCharacterResult.characters_lastName;
-			let currentRoom = currentCharacterResult.characters_currentRoom;
-
-			
-			mySqlModule.moveCharacter(socket, toRoom, function(){
-				crossRoomsMessages(socket, fN, lN, currentRoom, toRoom, arriveMessage, leaveMessage);
-			});
-		});
-}
-
-function moveDirection(socket, direction){
-
-	mySqlModule.select("a.*, b.rooms_north, b.rooms_east, b.rooms_south, b.rooms_west",
-		"characters a, rooms b",
-		"b.id = a.characters_currentRoom",
-		function(result){
-			let currentCharacterResult = result.find(element => element.id == socket.currentCharacter);
-			let fN = currentCharacterResult.characters_firstName;
-			let lN = currentCharacterResult.characters_lastName;
-			let currentRoom = currentCharacterResult.characters_currentRoom;
-			switch(direction){
-				case 0:
-					if(currentCharacterResult.rooms_north != -1){
-						exports.move(socket, currentCharacterResult.rooms_north, " enters the area from the south.", " leaves the area to the north.");
-						return;
-					}else{
-						shortcutModule.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
-					}
-					break;
-				case 1:
-					if(currentCharacterResult.rooms_east != -1){
-						exports.move(socket, currentCharacterResult.rooms_east, " enters the area from the west.", " leaves the area to the east.");
-						return;
-					}else{
-						shortcutModule.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
-					}
-					break;
-				case 2:
-					if(currentCharacterResult.rooms_south != -1){
-						exports.move(socket, currentCharacterResult.rooms_south, " enters the area from the north.", " leaves the area to the south.");
-						return;
-					}else{
-						shortcutModule.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
-					}
-					break;
-				case 3:
-					if(currentCharacterResult.rooms_west != -1){
-						exports.move(socket, currentCharacterResult.rooms_west, " enters the area from the east.", " leaves the area to the west.");
-						return;
-					}else{
-						shortcutModule.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
-					}
-					break;
-			}
-
-		});
-}
-function crossRoomsMessages(socket, firstName, lastName, fromRoom, toRoom, arriveMessage, leaveMessage){
-	mySqlModule.select("id, characters_currentRoom", "characters", "", function(charactersResult){
-		for(let currentSocket of shortcutModule.getAllConnectedSockets()){
-			if(currentSocket.currentCharacter != null && currentSocket.userId != socket.userId){
-				//this socket is logged in as a character and is not the socket thatis  doing the move.
-				let currentSocketCharacter = charactersResult.find(element => element.id == currentSocket.currentCharacter);
-
-				console.log(JSON.stringify(currentSocketCharacter));
-
-				if(currentSocketCharacter.characters_currentRoom == fromRoom){
-					shortcutModule.messageToClient(currentSocket, firstName + " " + lastName + leaveMessage);
-				}
-				if(currentSocketCharacter.characters_currentRoom == toRoom){
-					shortcutModule.messageToClient(currentSocket, firstName + " " + lastName + arriveMessage);
-				}
-			}
-		}
-		shortcutModule.describeRoom(socket, toRoom);
-	});
 }

@@ -199,14 +199,15 @@ function loginPasswordCallback(result, password, socket){
 }
 
 function login(socket, userId){
-	mySqlModule.select("*", "users", "id = '" + userId + "'", function(result, socket){
+	mySqlModule.select("*", "users", "id = '" + userId + "'", function(result){
 		socket.userId = result[0].id;
 		socket.username = result[0].users_username;
 
 		shortcutModule.messageToClient(socket, 'Password accepted.');
-		shortcutModule.messageToClient(socket, "Welcome, " + socket.username + ".");
+		shortcutModule.login(socket);
+
 		characterSelectScreen(socket);
-	}, socket);
+	});
 }
 
 function characterSelectScreen(socket){//redo  with new multiselect
@@ -242,15 +243,13 @@ function characterInitialization(socket, promptType, promptReply){
 		mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(result){
 			let characterIds = result[0].users_characters.split(",");
 			let targetCharacterId = characterIds[promptReply-1];
-			socket.currentCharacter = targetCharacterId;
 			if(targetCharacterId == -1){
 				//character creation
 				shortcutModule.messageToClient(socket, "Character creation started.");
 				socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?", "characterSelectScreen");
 			}else{
 				//load character
-				shortcutModule.messageToClient(socket, "Loading character...");
-				commandHandlerModule.move(socket, 1, " pops into existence.", " fades before disappearing.");
+				shortcutModule.loadCharacter(socket, targetCharacterId);
 			}
 		});
 	}
