@@ -6,6 +6,7 @@ const nameMinLength = 3;
 const mySqlModule = require('./mySqlModule');
 const commandHandlerModule = require('./commandHandlerModule');
 const shortcutModule = require('./shortcutModule');
+const templates = require('./templates')
 
 var ioRef = null;
 exports.start = function(io) {
@@ -201,10 +202,10 @@ function loginPasswordCallback(result, password, socket){
 function login(socket, userId){
 	mySqlModule.select("*", "users", "id = '" + userId + "'", function(result, socket){
 		socket.userId = result[0].id;
-		socket.username = result[0].users_username;
+		socket.temp.username = result[0].users_username;
 
 		shortcutModule.messageToClient(socket, 'Password accepted.');
-		shortcutModule.messageToClient(socket, "Welcome, " + socket.username + ".");
+		shortcutModule.messageToClient(socket, "Welcome, " + socket.temp.username + ".");
 		characterSelectScreen(socket);
 	}, socket);
 }
@@ -212,22 +213,19 @@ function login(socket, userId){
 function characterSelectScreen(socket){//redo  with new multiselect
 	mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(userResult){
 		mySqlModule.select("*", "characters", "", function(characterResult){
-			mySqlModule.select("*", "classes", "", function(classResult){
-				let characterIds = userResult.find(element => element.id == socket.userId).users_characters.split(",");
-				let charactersInfo = "Your characters: ";
-				for(let i = 0 ; i < characterIds.length ; i++){
-					if(characterIds[i] == -1){
-						charactersInfo = charactersInfo + "<br>" + (i+1) + ") ------------- NEW CHARACTER -------------";
-					}else{
-						let characterObj = characterResult.find(element => element.id == characterIds[i]);
-						let classObj = classResult.find(element => element.id == characterObj.characters_class);
-						charactersInfo = charactersInfo + "<br>" + (i+1) + ") Name: " + characterObj.characters_firstName + " Class: " + classObj.classes_name;
-					}
+			let characterIds = userResult.find(element => element.id == socket.userId).users_characters.split(",");
+			let charactersInfo = "Your characters: ";
+			for(let i = 0 ; i < characterIds.length ; i++){
+				if(characterIds[i] == -1){
+					charactersInfo = charactersInfo + "<br>" + (i+1) + ") ------------- NEW CHARACTER -------------";
+				}else{
+					let characterObj = characterResult.find(element => element.id == characterIds[i]);
+					let classObj = templates.classes[characterObj.characters_class];
+					charactersInfo = charactersInfo + "<br>" + (i+1) + ") Name: " + characterObj.characters_firstName + " Class: " + classObj.name;
 				}
-
-				shortcutModule.messageToClient(socket, charactersInfo);
-				socket.emit('prompt request', 'characterInitialization', "Which character slot would you like to load (1/2/3) or delete (del 1/2/3)? ", "accountInitialization");
-			});
+			}
+			shortcutModule.messageToClient(socket, charactersInfo);
+			socket.emit('prompt request', 'characterInitialization', "Which character slot would you like to load (1/2/3) or delete (del 1/2/3)? ", "accountInitialization");
 		});
 	});
 }
@@ -298,7 +296,7 @@ function characterInitialization(socket, promptType, promptReply){
 				}
 			})
 	}else{
-		shortcutModule.messageToClient(socket, "Please enter 1, 2, or 3 to load a character or del 1, del 2 , or del 3 to delete a character.");
+		shortcutModule.messageToClient(socket, "<color:red>Please enter 1, 2, or 3 to load a character or del 1, del 2 , or del 3 to delete a character.");
 		characterSelectScreen(socket);
 	}
 
@@ -322,7 +320,7 @@ function characterCreationFirstName(socket, promptType, promptReply){
 	if(isNameValid(socket.temp.firstname)){
 		confirmPrompt(socket, 'Is ' + socket.temp.firstname + ' okay? (Y/N)', "characterSelectScreen",
 			function(){
-				socket.emit('prompt request', 'characterCreationLastName', "What is your last name?", "characterSelectScreen");
+				socket.emit('prompt request', 'characterCreationLastName', "What is your Surname?", "characterSelectScreen");
 			},
 			function(){
 				socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?", "characterSelectScreen");
@@ -350,23 +348,21 @@ function characterCreationLastName(socket, promptType, promptReply){
 						socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?", "characterSelectScreen");
 					},
 					function(){ //name unique
-						mySqlModule.select("*", "races",  "", function(result, socket){
-						let availableRaces = result[0].races_name + "";
-						for(let i = 1; i < result.length; i++){
-							availableRaces += ", " + result[i].races_name;
+						let availableRaces = templates.races[0].name + "";
+						for(let i = 1; i < templates.races.length; i++){
+							availableRaces += ", " + templates.races[i].name;
 						}
-						shortcutModule.messageToClient(socket, "Available Chararacter Races: " + availableRaces);
+						shortcutModule.messageToClient(socket, "Available Races: " + availableRaces);
 						socket.emit('prompt request', 'characterCreationRace', "What is your race?", "characterSelectScreen");
-						}, socket);
 					})
 			},
 			function(){
-				socket.emit('prompt request', 'characterCreationLastName', "What is your last name?", "characterSelectScreen");
+				socket.emit('prompt request', 'characterCreationLastName', "What is your surname?", "characterSelectScreen");
 			}
 		);
 	}else{
-		shortcutModule.messageToClient(socket, "<color:red>Last Name is invalid.<br>" +
-					">Last name should be between 3 and 16 characters<br>" +
+		shortcutModule.messageToClient(socket, "<color:red>Surname is invalid.<br>" +
+					">Surname should be between 3 and 16 characters<br>" +
 					">Should only contain letters and hyphen"
 					);
 		socket.emit('prompt request', 'characterCreationFirstName', "What is your first name?", "characterSelectScreen");
@@ -374,74 +370,66 @@ function characterCreationLastName(socket, promptType, promptReply){
 }
 
 function characterCreationRace(socket, promptType, promptReply){
-	mySqlModule.select("*", "races",  "races_name = '" + promptReply + "'", function(result, socket){
-		if(result.length > 0){
-			socket.temp.raceid = result[0].id;
-			socket.temp.race = promptReply;
-			confirmPrompt(socket, 'Is ' + socket.temp.race + ' okay? (Y/N)', "characterSelectScreen",
-				function(){
-					mySqlModule.select("*", "classes",  "", function(result, socket){
-						let availableClasses = result[0].classes_name + "";
-						for(let i = 1; i < result.length; i++){
-						availableClasses += ", " + result[i].classes_name;
-					}
-					shortcutModule.messageToClient(socket, "Available Character Classes: " + availableClasses);
-					socket.emit('prompt request', 'characterCreationClass', "What is your class?", "characterSelectScreen")
-					}, socket);
-				},
-				function(){
-					socket.emit('prompt request', 'characterCreationRace', "What is your race?", "characterSelectScreen");
+	let raceSelection = templates.races.find(element => element.name.toLowerCase() == promptReply.trim().toLowerCase());
+	if(raceSelection != null){
+		socket.temp.raceid = raceSelection.id;
+		socket.temp.race = promptReply;
+		confirmPrompt(socket, 'Is ' + socket.temp.race + ' okay? (Y/N)', "characterSelectScreen",
+			function(){
+				let availableClasses = templates.classes[0].name + "";
+				for(let i = 1; i < templates.classes.length; i++){
+					availableClasses += ", " + templates.classes[i].name;
 				}
-			);
-		}else{
-			shortcutModule.messageToClient(socket, "Chararacter Race invalid");
-			mySqlModule.select("*", "races",  "", function(result, socket){
-				let availableRaces = result[0].races_name + "";
-				for(let i = 1; i < result.length; i++){
-					availableRaces += ", " + result[i].races_name;
-				}
-				shortcutModule.messageToClient(socket, "<color:red>Available Chararacter Races: " + availableRaces);
+				shortcutModule.messageToClient(socket, "Available Character Classes: " + availableClasses);
+				socket.emit('prompt request', 'characterCreationClass', "What is your class?", "characterSelectScreen")
+			},
+			function(){
 				socket.emit('prompt request', 'characterCreationRace', "What is your race?", "characterSelectScreen");
-			}, socket);
+			}
+		);
+	}else{
+		shortcutModule.messageToClient(socket, "<color:red>Chararacter Race invalid");
+		let availableRaces = templates.races[0].name + "";
+		for(let i = 1; i < templates.races.length; i++){
+			availableRaces += ", " + templates.races[i].name;
 		}
-	}, socket);
+		shortcutModule.messageToClient(socket, "Available Races: " + availableRaces);
+		socket.emit('prompt request', 'characterCreationRace', "What is your race?", "characterSelectScreen");
+	}
 }
 
 function characterCreationClass(socket, promptType, promptReply){
-	mySqlModule.select("*", "classes",  "classes_name = '" + promptReply + "'", function(result, socket){
-		if(result.length > 0){
-			socket.temp.classid = result[0].id;
-			socket.temp.class = promptReply;
-			confirmPrompt(socket, 'Is ' + socket.temp.class + ' okay? (Y/N)', "characterSelectScreen",
-				function(){
-					characterCreationComplete(socket);
-				},
-				function(){
-					socket.emit('prompt request', 'characterCreationClass', "What is your class?", "characterSelectScreen")
-				}
-			);
-		}else{
-			shortcutModule.messageToClient(socket, "Chararacter Class invalid");
-			mySqlModule.select("*", "classes",  "", function(result, socket){
-				let availableClasses = result[0].classes_name + "";
-				for(let i = 1; i < result.length; i++){
-					availableClasses += ", " + result[i].classes_name;
-				}
-				shortcutModule.messageToClient(socket, "<color:red>Available Character Classes: " + availableClasses);
+	let classSelection = templates.classes.find(element => element.name.toLowerCase() == promptReply.trim().toLowerCase());
+	if(classSelection != null){
+		socket.temp.classid = classSelection.id;
+		socket.temp.class = promptReply;
+		confirmPrompt(socket, 'Is ' + socket.temp.class + ' okay? (Y/N)', "characterSelectScreen",
+			function(){
+				characterCreationComplete(socket);
+			},
+			function(){
 				socket.emit('prompt request', 'characterCreationClass', "What is your class?", "characterSelectScreen")
-			}, socket);
+			}
+		);
+	}else{
+		shortcutModule.messageToClient(socket, "<color:red>Chararacter Class invalid");
+		let availableClasses = templates.classes[0].name + "";
+		for(let i = 1; i < templates.classes.length; i++){
+			availableClasses += ", " + templates.classes[i].name;
 		}
-	}, socket);
+		shortcutModule.messageToClient(socket, "Available Character Classes: " + availableClasses);
+		socket.emit('prompt request', 'characterCreationClass', "What is your class?", "characterSelectScreen")
+	}
 }
 
 function characterCreationComplete(socket){
-	shortcutModule.messageToClient(socket, 	"<b>First Name: </b>" + socket.temp.firstname +
-											"<br><b>last name: </b>" + socket.temp.lastname +
-											"<br><b>race: </b>" + socket.temp.race +
-											"<br><b>class: </b>" + socket.temp.class);
+	shortcutModule.messageToClient(socket, 	"<color:yellow><b>First name: </b>" + socket.temp.firstname +
+											"<br><color:yellow><b>Surname: </b>" + socket.temp.lastname +
+											"<br><color:yellow><b>Race: </b>" + socket.temp.race +
+											"<br><color:yellow><b>Class: </b>" + socket.temp.class);
 	confirmPrompt(socket, 'Are you okay with this? (Y/N)', "characterSelectScreen",
 		function(){
-			shortcutModule.messageToClient(socket, "<color:yellow><b>character function lol");
+			//shortcutModule.messageToClient(socket, "<color:yellow><b>character function lol");
 			createCharacter(socket);
 		},
 		function(){
@@ -469,7 +457,6 @@ function createCharacter(socket){
 
 		});
 	});
-	//find associated character id
 }
 
 function confirm(socket, promptType, promptReply, exitPromptType){
