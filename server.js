@@ -19,7 +19,8 @@ app.use(express.static('public'));
 io.on('connection', (socket) => {
 	console.log('a user connected');
 
-	socket.username = "unset";
+	socket.userId = -1;
+	socket.currentCharacter = -1;
 	socket.emit('client connected');
 
 	socket.on('disconnect', disconnect);

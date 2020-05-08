@@ -1,4 +1,5 @@
 const mySqlModule = require('./mySqlModule');
+const promptHandlerModule = require('./promptHandlerModule');
 const shortcutModule = require('./shortcutModule');
 
 
@@ -44,17 +45,24 @@ function handleCommand(socket, command){
 		case "dice":
 			rollDice(socket, commandArray);
 			break;
+		case "logout":
+			logout(socket);
+			break;
 		case "help":
 			shortcutModule.messageToClient(socket,
 				"<b>HELP:</b><br>" +
 				"To use a command, type \"<command>;<param 1>;<param 2>;...\"<br>" +
 				"For example: say;hello everyone<br>" +
-				"The available commands are: say, dice, look");
+				"The available commands are: say, dice, look, logout");
 			break;
 		default:
 			shortcutModule.messageToClient(socket, "<color:red>Invalid command try 'help'");
 			break;
 	}
+}
+
+function logout(socket){
+	socket.emit("prompt request" , "accountInitialization", "Login or Register?", "accountInitialization");
 }
 
 function rollDice(socket, commandArray){
