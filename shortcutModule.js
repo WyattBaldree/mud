@@ -21,7 +21,7 @@ exports.loadCharacter = function(socket, characterId){
 	socket.currentCharacter = characterId;
 	exports.getCharacterFromSocket(socket, function(character){
 		exports.messageToClient(socket, "Welcome, " + character.characters_firstName + " " + character.characters_lastName + ".");
-		exports.move(socket, 1, " pops into existence.", " fades before disappearing.");
+		exports.move(socket, 1, "You suddenly appear in ", " pops into existence.", " fades before disappearing.");
 	});
 }
 
@@ -83,24 +83,21 @@ exports.getAllConnectedSockets = function(){
 	return sockets;
 }
 
-exports.move = function(socket, toRoom, arriveMessage, leaveMessage){
-	mySqlModule.select("a.*, b.rooms_north, b.rooms_east, b.rooms_south, b.rooms_west",
-		"characters a, rooms b",
-		"b.id = a.characters_currentRoom",
-		function(result){
-			let currentCharacterResult = result.find(element => element.id == socket.currentCharacter);
-			let fN = currentCharacterResult.characters_firstName;
-			let lN = currentCharacterResult.characters_lastName;
-			let currentRoom = currentCharacterResult.characters_currentRoom;
+exports.move = function(socket, toRoom, enterMessage, arriveMessage, leaveMessage){
+	mySqlModule.select("a.*", "characters a, rooms b", "b.id = a.characters_currentRoom", function(result){
+		let currentCharacterResult = result.find(element => element.id == socket.currentCharacter);
+		let fN = currentCharacterResult.characters_firstName;
+		let lN = currentCharacterResult.characters_lastName;
+		let currentRoom = currentCharacterResult.characters_currentRoom;
 
 
-			exports.moveCharacter(socket, toRoom, function(){
-				crossRoomsMessages(socket, fN, lN, currentRoom, toRoom, arriveMessage, leaveMessage);
-			});
+		exports.moveCharacter(socket, toRoom, function(){
+			crossRoomsMessages(socket, fN, lN, currentRoom, toRoom, enterMessage, arriveMessage, leaveMessage);
 		});
+	});
 }
 
-exports.moveDirection = function(socket, direction){
+exports.moveDirection = function(socket, direction, enterMessage, arriveMessage, leaveMessage){
 
 	mySqlModule.select("a.*, b.rooms_north, b.rooms_east, b.rooms_south, b.rooms_west",
 		"characters a, rooms b",
@@ -113,7 +110,7 @@ exports.moveDirection = function(socket, direction){
 			switch(direction){
 				case 0:
 					if(currentCharacterResult.rooms_north != -1){
-						exports.move(socket, currentCharacterResult.rooms_north, " enters the area from the south.", " leaves the area to the north.");
+						exports.move(socket, currentCharacterResult.rooms_north, enterMessage, arriveMessage + "south.", leaveMessage + "north.");
 						return;
 					}else{
 						exports.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
@@ -121,7 +118,7 @@ exports.moveDirection = function(socket, direction){
 					break;
 				case 1:
 					if(currentCharacterResult.rooms_east != -1){
-						exports.move(socket, currentCharacterResult.rooms_east, " enters the area from the west.", " leaves the area to the east.");
+						exports.move(socket, currentCharacterResult.rooms_east, enterMessage, arriveMessage + "west.", leaveMessage + "east.");
 						return;
 					}else{
 						exports.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
@@ -129,7 +126,7 @@ exports.moveDirection = function(socket, direction){
 					break;
 				case 2:
 					if(currentCharacterResult.rooms_south != -1){
-						exports.move(socket, currentCharacterResult.rooms_south, " enters the area from the north.", " leaves the area to the south.");
+						exports.move(socket, currentCharacterResult.rooms_south, enterMessage, arriveMessage + "north.", leaveMessage + "south.");
 						return;
 					}else{
 						exports.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
@@ -137,7 +134,7 @@ exports.moveDirection = function(socket, direction){
 					break;
 				case 3:
 					if(currentCharacterResult.rooms_west != -1){
-						exports.move(socket, currentCharacterResult.rooms_west, " enters the area from the east.", " leaves the area to the west.");
+						exports.move(socket, currentCharacterResult.rooms_west, enterMessage, " enters the area from the east.", leaveMessage + "west.");
 						return;
 					}else{
 						exports.messageToClient(socket, "<color:red>I'm unable to move in that direction.")
@@ -162,24 +159,25 @@ exports.moveCharacter = function(socket, toRoom, callback){
 			}
 		}
 		mySqlModule.update("rooms", "rooms_playerList = '" + oldRoomPlayerList + "'", "id = '" + currentCharacterResult.characters_currentRoom + "'", function(){
-			mySqlModule.select(	"rooms_playerList, rooms_description",
-				"rooms",
-				"id = " + toRoom,
-				function(toRoomResult){
-					let newRoomPlayerList = toRoomResult[0].rooms_playerList + socket.currentCharacter + ",";
+			mySqlModule.select(	
+			"rooms_playerList, rooms_description",
+			"rooms",
+			"id = " + toRoom,
+			function(toRoomResult){
+				let newRoomPlayerList = toRoomResult[0].rooms_playerList + socket.currentCharacter + ",";
 
-					mySqlModule.update("rooms", "rooms_playerList = '" + newRoomPlayerList + "'", "id = '" + toRoom + "'", function(){
-						mySqlModule.update("characters", "characters_currentRoom = '" + toRoom + "'", "id = '" + socket.currentCharacter + "'", function(){
-							// Do something efter the move has completed.
-							callback();
-						});
+				mySqlModule.update("rooms", "rooms_playerList = '" + newRoomPlayerList + "'", "id = '" + toRoom + "'", function(){
+					mySqlModule.update("characters", "characters_currentRoom = '" + toRoom + "'", "id = '" + socket.currentCharacter + "'", function(){
+						// Do something efter the move has completed.
+						callback();
 					});
 				});
 			});
+		});
 	});
 }
 
-function crossRoomsMessages(socket, firstName, lastName, fromRoom, toRoom, arriveMessage, leaveMessage){
+function crossRoomsMessages(socket, firstName, lastName, fromRoom, toRoom, enterMessage, arriveMessage, leaveMessage){
 	mySqlModule.select("id, characters_currentRoom", "characters", "", function(charactersResult){
 		for(let currentSocket of exports.getAllConnectedSockets()){
 			if(currentSocket.currentCharacter != null && currentSocket.userId != socket.userId){
@@ -196,12 +194,12 @@ function crossRoomsMessages(socket, firstName, lastName, fromRoom, toRoom, arriv
 				}
 			}
 		}
-		exports.describeRoomNameMoving(socket, toRoom);
-		exports.describeRoom(socket, toRoom);
+		exports.enterRoomMessage(socket, enterMessage, toRoom);
+		exports.describeRoomMessage(socket, toRoom);
 	});
 }
 
-exports.describeRoom = function(socket, roomId){
+exports.describeRoomMessage = function(socket, roomId){
 	mySqlModule.select("rooms_description, rooms_playerList", "rooms", "id = " + roomId, function(result){
 		let roomDescription = result[0].rooms_description;
 		mySqlModule.select("id, characters_firstName, characters_lastName", "characters", "characters_currentRoom = " + roomId, function(charactersResult){
@@ -232,10 +230,10 @@ exports.describeRoom = function(socket, roomId){
 	});
 }
 
-exports.describeRoomNameMoving = function(socket, roomId){
-	mySqlModule.select("rooms_name, rooms_description, rooms_playerList", "rooms", "id = " + roomId, function(result){
-		let roomNameDescription = result[0].rooms_name;
-		socket.emit('chat message', "You enter " + roomNameDescription + ".");
+exports.enterRoomMessage = function(socket, enterMessage, roomId){
+	mySqlModule.select("rooms_name", "rooms", "id = " + roomId, function(result){
+		let roomName = result[0].rooms_name;
+		socket.emit('chat message', enterMessage + roomName + ".");
 	});
 }
 

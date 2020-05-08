@@ -31,7 +31,7 @@ io.on('connection', (socket) => {
 });
 
 // start the express web server listening on 3000
-http.listen(3001, (req, res) => {
+http.listen(3000, (req, res) => {
   console.log('listening on 3000');
 })
 
@@ -44,4 +44,5 @@ app.get('/', (req, res) => {
 function disconnect(){
 	console.log('user disconnected');
 	shortcutModule.messageToAll(this.username + " has disconnected");
+	shortcutModule.logout(this);
 }

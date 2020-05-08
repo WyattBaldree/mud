@@ -20,23 +20,23 @@ function handleCommand(socket, command){
 	switch(commandArray[0].trim().toLowerCase()){
 		case "n":
 		case "north":
-			shortcutModule.moveDirection(socket, 0);
+			move(socket, 0);
 			break;
 		case "e":
 		case "east":
-			shortcutModule.moveDirection(socket, 1);
+			move(socket, 1);
 			break;
 		case "s":
 		case "south":
-			shortcutModule.moveDirection(socket, 2);
+			move(socket, 2);
 			break;
 		case "w":
 		case "west":
-			shortcutModule.moveDirection(socket, 3);
+			move(socket, 3);
 			break;
 		case "look":
 			shortcutModule.getMyCharacter(socket, function(myCharacter){
-				shortcutModule.describeRoom(socket, myCharacter.characters_currentRoom);
+				shortcutModule.describeRoomMessage(socket, myCharacter.characters_currentRoom);
 			});
 			break;
 		case "say":
@@ -63,6 +63,10 @@ function handleCommand(socket, command){
 			shortcutModule.messageToClient(socket, "<color:red>Invalid command try 'help'");
 			break;
 	}
+}
+
+function move(socket, direction){
+	shortcutModule.moveDirection(socket, direction, "You enter ", " enters the area from the ", " leaves the area to the ");
 }
 
 function rollDice(socket, commandArray){
