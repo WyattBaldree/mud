@@ -1,0 +1,3 @@
+W:\Workspace\mud\obj\Debug\mud.njsprojAssemblyReference.cache
+W:\Workspace\mud\obj\Debug\mud.njsproj.CoreCompileInputs.cache
+W:\Workspace\mud\bin\Microsoft.NodejsTools.WebRole.dll

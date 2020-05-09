@@ -180,7 +180,7 @@ exports.moveCharacter = function(socket, toRoom, callback){
 function crossRoomsMessages(socket, firstName, lastName, fromRoom, toRoom, enterMessage, arriveMessage, leaveMessage){
 	mySqlModule.select("id, characters_currentRoom", "characters", "", function(charactersResult){
 		for(let currentSocket of exports.getAllConnectedSockets()){
-			if(currentSocket.currentCharacter != null && currentSocket.userId != socket.userId){
+            if (currentSocket.currentCharacter != null && currentSocket.currentCharacter != -1 && currentSocket.userId != socket.userId){
 				//this socket is logged in as a character and is not the socket thatis  doing the move.
 				let currentSocketCharacter = charactersResult.find(element => element.id == currentSocket.currentCharacter);
 
