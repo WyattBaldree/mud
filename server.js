@@ -21,7 +21,7 @@ mySqlModule.update("users", "users_online = '0'", "", null);
 loopModule.drip();
 
 io.on('connection', (socket) => {
-	console.log('a user connected');
+	console.log('a user connected!');
 
 	socket.userId = -1;
 	socket.currentCharacter = -1;
