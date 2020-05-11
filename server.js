@@ -4,15 +4,18 @@ const app = express();
 const http = require("http").createServer(app);
 var io = require('socket.io')(http);
 
+const maxMessageLength = 255;
+
 const mySqlModule = require('./mySqlModule');
 const commandHandlerModule = require('./commandHandlerModule');
-commandHandlerModule.start(io);
+commandHandlerModule.start(io, maxMessageLength);
 const promptHandlerModule = require('./promptHandlerModule');
-promptHandlerModule.start(io);
+promptHandlerModule.start(io, maxMessageLength);
 const shortcutModule = require('./shortcutModule');
 shortcutModule.start(io);
 const loopModule = require('./loopModule');
 loopModule.start(io);
+
 // serve files from the public directory
 app.use(express.static('public'));
 

@@ -8,8 +8,12 @@ const commandHandlerModule = require('./commandHandlerModule');
 const shortcutModule = require('./shortcutModule');
 const templates = require('./templates')
 
+let maxMessageLength = 255;
+
 var ioRef = null;
-exports.start = function(io) {
+exports.start = function (io, _maxMessageLength) {
+    maxMessageLength = _maxMessageLength;
+
 	ioRef = io;
     io.on('connection', function(socket) {
 		socket.on('prompt reply', function(promptType, promptReply, exitType){
@@ -18,7 +22,8 @@ exports.start = function(io) {
     });
 };
 
-function handlePromptReply(socket, promptType, promptReply, exitPromptType = ""){
+function handlePromptReply(socket, promptType, promptReply, exitPromptType = "") {
+    promptReply = promptReply.substring(0, maxMessageLength);
 	if(promptReply.toLowerCase() == "exit"){
 		if(exitPromptType != ""){
 			promptType = exitPromptType
