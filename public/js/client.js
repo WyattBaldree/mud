@@ -119,6 +119,13 @@ function printMessageToLog(msg){
 
 	li.innerHTML = finalMsg;
 	document.getElementById("messageLog").prepend(li);
+	
+	console.log("length" +  document.getElementById("messageLog").getElementsByTagName("li").length);
+	//while loop that checks length of li
+	while(document.getElementById("messageLog").getElementsByTagName("li").length > 100){
+		document.getElementById("messageLog").removeChild(document.getElementById("messageLog").lastElementChild);
+	};
+	//remove last element from node
 
 	if(enterPress || isAtBottom){
 		let messageLog = document.getElementById("messageLog");
