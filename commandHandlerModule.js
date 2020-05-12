@@ -2,9 +2,11 @@ const mySqlModule = require('./mySqlModule');
 const promptHandlerModule = require('./promptHandlerModule');
 const shortcutModule = require('./shortcutModule');
 
+let maxMessageLength = 255;
 
 var ioRef = null;
-exports.start = function(io) {
+exports.start = function (io, _maxMessageLength) {
+    maxMessageLength = _maxMessageLength;
 	ioRef = io;
     io.on('connection', function(socket) {
 		socket.on('command', function(command){
@@ -14,7 +16,9 @@ exports.start = function(io) {
 };
 
 
-function handleCommand(socket, command){
+function handleCommand(socket, command) {
+
+    command = command.substring(0, maxMessageLength);
 	let commandArray = command.split(";");
 
 	switch(commandArray[0].trim().toLowerCase()){

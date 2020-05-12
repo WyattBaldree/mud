@@ -8,14 +8,20 @@ let currentExitType = "";
 let saved10messages = ["","","","","","","","","",""];
 let currentMessageIndex = 10;
 
+let maxMessageLength = 255;
+
 const commandLine = document.getElementById('commandLine');
 commandLine.onkeydown = handleCommand;
 
-function handleCommand(e){
+function handleCommand(e) {
+    console.log(commandLine.value.length);
+    commandLine.value = commandLine.value.substring(0, maxMessageLength);
+    console.log(commandLine.value.length);
+
 	if(e.code == "Enter"){
 		let commandLine = document.getElementById("commandLine");
 	    enterPress = true;
-	    currentMessageIndex = 10;
+        currentMessageIndex = 10;
 	    if(commandLine.value != ""){
 	    	saved10messages.shift();
 	   		saved10messages.push(commandLine.value);
