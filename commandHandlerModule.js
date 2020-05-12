@@ -1,6 +1,7 @@
 const mySqlModule = require('./mySqlModule');
 const promptHandlerModule = require('./promptHandlerModule');
 const shortcutModule = require('./shortcutModule');
+const characterModule = require('./characterModule');
 
 let maxMessageLength = 255;
 
@@ -39,7 +40,7 @@ function handleCommand(socket, command) {
 			move(socket, 3);
 			break;
 		case "look":
-			shortcutModule.getMyCharacter(socket, function(myCharacter){
+			characterModule.getMyCharacter(socket, function(myCharacter){
 				shortcutModule.describeRoomMessage(socket, myCharacter.characters_currentRoom);
 			});
 			break;
@@ -70,7 +71,7 @@ function handleCommand(socket, command) {
 }
 
 function move(socket, direction){
-	shortcutModule.moveDirection(socket, direction, "You enter ", " enters the area from the ", " leaves the area to the ");
+	characterModule.moveDirection(socket, direction, "You enter ", " enters the area from the ", " leaves the area to the ");
 }
 
 function rollDice(socket, commandArray){
@@ -106,4 +107,27 @@ function rollDice(socket, commandArray){
 	else{
 		shortcutModule.messageToClient(socket, "<color:red>\"" + commandArray[1] + "\" is not a valid dice type. Try \"dice;3d6\".");
 	}
+}
+
+exports.say = function (socket, message) {
+    let socketList = exports.getAllConnectedSockets();
+    //find all characters in same room.
+    //check if each character has a socket currently controlling it.
+    //if so, say to them.
+    mySqlModule.select("id, characters_currentRoom, characters_firstName, characters_lastName", "characters", "", function (charactersTableResult) {
+        let myCharacter = charactersTableResult.find(element => element.id == socket.currentCharacter);
+        let originRoom = myCharacter.characters_currentRoom;
+        let myName = myCharacter.characters_firstName + " " + myCharacter.characters_lastName;
+
+        let finalMessage = "<b>" + myName + ": </b>" + message;
+
+        for (let c of charactersTableResult) {
+            if (c.characters_currentRoom == originRoom) {
+                let characterSocket = socketList.find(element => element.currentCharacter == c.id);
+                if (characterSocket) {
+                    exports.messageToClient(characterSocket, finalMessage);
+                }
+            }
+        }
+    });
 }

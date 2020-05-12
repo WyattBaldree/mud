@@ -15,6 +15,8 @@ const shortcutModule = require('./shortcutModule');
 shortcutModule.start(io);
 const loopModule = require('./loopModule');
 loopModule.start(io);
+const characterModule = require('./characterModule');
+characterModule.start(io);
 
 // serve files from the public directory
 app.use(express.static('public'));

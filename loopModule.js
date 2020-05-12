@@ -15,7 +15,7 @@ const id = gameloop.setGameLoop(function(delta) {
 
 
 exports.drip = function(){
-	shortcutModule.messageInRoom(0, "<color:blue><sub>*drip*");
+	shortcutModule.messageInRoom(1, "<color:blue><sub>*drip*");
 	console.log("drip");
 	setTimeout(exports.drip, 6000);
 }
