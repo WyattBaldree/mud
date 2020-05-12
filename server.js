@@ -21,7 +21,7 @@ mySqlModule.update("users", "users_online = '0'", "", null);
 loopModule.drip();
 
 io.on('connection', (socket) => {
-	console.log('a user connected!');
+	console.log('a user connected');
 
 	socket.userId = -1;
 	socket.currentCharacter = -1;
@@ -43,6 +43,5 @@ app.get('/', (req, res) => {
 
 function disconnect(){
 	console.log('user disconnected');
-	shortcutModule.messageToAll(this.username + " has disconnected");
-	shortcutModule.logout(this);
+	shortcutModule.messageToAll(" A user has disconnected");
 }
