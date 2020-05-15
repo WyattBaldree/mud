@@ -6,7 +6,16 @@ exports.start = function (io) {
     ioRef = io;
 };
 
-exports.getAllCharactersInRoom = function (room, callback) {
+
+exports.getCharacterIdFromCharacterName = function (characterName, callback){
+  mySqlModule.select("id", "characters", "characters_firstname = '" + characterName + "'", function(result){
+    let characterId = result[0].id;
+    console.log("target character id" + characterId);
+    callback(characterId);
+  });
+}
+
+exports.getAllCharactersInRoom = function (room, callback) {//fix
     //return a list of all players in the room provided
     mySqlModule.select("rooms_playerList", "rooms", "id = '" + room + "'", function (result) {
         let playerList = result[0].rooms_playerList.split(",");
@@ -30,10 +39,8 @@ exports.getAllCharacterIdsInRoomOnline = function (room, callback) {
             //if player or id is in socket list push to connectedPlayerList
             //loop through connectedPlayer playerlist
             for (let i = 0; i < connectedSockets.length; i++) {
-
                 if (connectedSockets[i].currentCharacter == player) {
                     connectedPlayerList.push(player);
-
                 }
             }
         }
@@ -160,6 +167,31 @@ exports.moveCharacter = function (socket, toRoom, callback) {
 
 exports.getMyCharacter = function (socket, callback) {
     mySqlModule.select("*", "characters", "id = '" + socket.currentCharacter + "'", function (result) {
-        callback(result[0]);
+      let myCharacter = result[0];
+      callback(myCharacter);
     });
 }
+
+exports.getMyCharacterRoomId = function (socket, callback) {
+  mySqlModule.select("characters_currentRoom", "characters", "id = '" + socket.currentCharacter + "'", function (result){
+    let myCharacterRoomId = result[0].characters_currentRoom;
+    console.log("myroomid" + myCharacterRoomId);
+    callback(myCharacterRoomId);
+  });
+}
+
+exports.getHealth = function (characterId, callback) {
+  mySqlModule.select("characters_health", "characters", "id = '" + characterId + "'", function(result){
+    let characterHealth = result[0].characters_health;
+    callback(characterHealth);
+  })
+}
+
+exports.setHealth = function (characterId, health, callback) {
+  //select character and find health
+  //update
+  mySqlModule.update("characters", "characters_health = '" + health + "'", "id = '" + characterId + "'", function(result){
+    callback(result);
+  })
+}
+

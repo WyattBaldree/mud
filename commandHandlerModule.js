@@ -64,10 +64,57 @@ function handleCommand(socket, command) {
 				"For example: say;hello everyone<br>" +
 				"The available commands are: say, dice, look, logout");
 			break;
+    case "assault":
+      if(commandArray.length > 0){
+        assault(socket, commandArray[1].trim());
+        console.log("assault start");
+      }else{
+        shortcutModule.messageToClient(socket, "<color:red>Invalid command try 'assault;<Characters's First Name>'");
+      }
+    break;
 		default:
 			shortcutModule.messageToClient(socket, "<color:red>Invalid command try 'help'");
 			break;
 	}
+}
+
+function assault(socket, target){
+  //get room character is in
+  if(target){
+    characterModule.getMyCharacterRoomId(socket, function(myCharacterRoomId){
+      //get character id from targetname
+      characterModule.getCharacterIdFromCharacterName(target, function(characterId){
+        characterModule.getAllCharacterIdsInRoomOnline(myCharacterRoomId, function(connectedPlayerList){
+          //check if target is in same room
+          let characterExists = false;
+          for(let playerId of connectedPlayerList){
+            if(characterId == playerId){
+              //target is in the room
+              characterExists = true;
+              break;
+            }
+          }
+          if(characterExists){
+            //select health from characterId
+            characterModule.getHealth(characterId, function(characterHealth){
+              //do damage calculation
+              let afterAttackHealth = characterHealth - 1; //need to add character damage
+              //update health
+              characterModule.setHealth(characterId, afterAttackHealth, function(result){
+                console.log("attack successful");
+                shortcutModule.messageInRoom(myCharacterRoomId, "You dealt damage to " + target)
+              });
+            });
+          }else{
+            //target is not in the same room / invalid target
+            console.log("attack unsuccessful");
+            shortcutModule.messageToClient(socket, "<color:red>Invalid target");
+          }
+        });
+      });
+    });
+  }
+  
 }
 
 function move(socket, direction){
