@@ -217,7 +217,7 @@ function login(socket, userId){
 	});
 }
 
-function characterSelectScreen(socket){//redo  with new multiselect
+function characterSelectScreen(socket){
 	socket.currentCharacter = -1;
 	mySqlModule.select("*", "users", "id = '" + socket.userId + "'", function(userResult){
 		mySqlModule.select("*", "characters", "", function(characterResult){
