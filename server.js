@@ -17,6 +17,8 @@ const loopModule = require('./loopModule');
 loopModule.start(io);
 const characterModule = require('./characterModule');
 characterModule.start(io);
+const monsterModule = require('./monsterModule');
+monsterModule.start(io);
 
 // serve files from the public directory
 app.use(express.static('public'));
