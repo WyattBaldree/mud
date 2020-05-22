@@ -7,7 +7,7 @@ var ioRef = null;
 exports.start = function (io) {
     ioRef = io;
 
-    new Goblin();
+    new Goblin(1);
 };
 
 exports.getMonsterList = function () {
@@ -15,20 +15,21 @@ exports.getMonsterList = function () {
 }
 
 class Monster {
-    constructor(maxHealth, maxCooldown) {
-
+    constructor(maxHealth, maxCooldown, startingRoom) {
         this.maxHealth = maxHealth;
         this.maxCooldown = maxCooldown;
-
         this.monsterName = "unset";
-
-        let newMonster = this;
+        this.room = startingRoom;
+        let self = this;
 
         this.active = false;
-        mySqlModule.insert("monster_instances", "monster_instances_health, monster_instances_cooldown", this.maxHealth + "','" + this.maxCooldown, function (result) {
-            newMonster.id = result.insertId;
-            monsterList.push(newMonster);
-            newMonster.active = true;
+        
+        mySqlModule.insert("monster_instances", "monster_instances_health, monster_instances_cooldown, monster_instances_currentRoom", this.maxHealth + "','" + this.maxCooldown + "','" + this.room, function (result) {
+          self.id = result.insertId;
+          self.setRoom(self.room, function(){
+            monsterList.push(self);
+            self.active = true;
+          })   
         });
     }
 
@@ -61,7 +62,30 @@ class Monster {
             callback(result[0].monster_instances_health);
         });
     }
-
+    
+    getRoom(callback) {
+        mySqlModule.select("monster_instances_room", "monster_instances", "id = " + this.id, function (result) {
+          callback(result[0].monster_instances_room);
+        });
+    }
+    
+    setRoom(newRoom, callback = null){
+      let self = this;
+      mySqlModule.update("monster_instances", "monster_instances_currentRoom =" + newRoom, "id = " + this.id, function (result) {
+        mySqlModule.select("rooms_monsterList", "rooms", "id ='" + newRoom + "'", function(selectResult){
+          let allMonsters = selectResult[0].rooms_monsterList;
+            if(allMonsters == ""){
+              allMonsters += "" + self.id;
+            }else{
+              allMonsters += "," + self.id;
+            }
+          mySqlModule.update("rooms", "rooms_monsterList = '" + allMonsters + "'",  "id ='" + self.room + "'", function (roomResult) {
+            if (callback) callback();
+          }); 
+        });   
+      });
+    }
+    
     setCooldown(newCooldown, callback = null) {
         mySqlModule.update("monster_instances", "monster_instances_cooldown = " + newCooldown, "id = " + this.id, function () {
             if (callback) callback();
@@ -83,8 +107,8 @@ class Monster {
 }
 
 class Goblin extends Monster {
-    constructor() {
-        super(10, 60);
+    constructor(startingRoom) {
+        super(10, 60, startingRoom);
         this.monsterName = "goblin";
     }
 }
