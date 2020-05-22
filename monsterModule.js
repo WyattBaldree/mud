@@ -104,6 +104,15 @@ class Monster {
             result.insertId;
         });
     }
+    
+    act(){
+      attack(target);
+      
+    }
+    
+    attack(target){
+      //need character instances and room instances done
+    }
 }
 
 class Goblin extends Monster {
