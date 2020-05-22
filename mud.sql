@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.0.1
+-- version 4.9.2
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 16, 2020 at 06:36 AM
--- Server version: 10.4.6-MariaDB
--- PHP Version: 7.3.9
+-- Generation Time: May 22, 2020 at 05:32 PM
+-- Server version: 10.4.11-MariaDB
+-- PHP Version: 7.4.1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -56,6 +56,41 @@ INSERT INTO `characters` (`id`, `characters_firstName`, `characters_lastName`, `
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `monster_instances`
+--
+
+CREATE TABLE `monster_instances` (
+  `id` int(11) NOT NULL,
+  `monster_instances_health` int(11) NOT NULL DEFAULT 10,
+  `monster_instances_cooldown` int(11) NOT NULL DEFAULT 6
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `monster_instances`
+--
+
+INSERT INTO `monster_instances` (`id`, `monster_instances_health`, `monster_instances_cooldown`) VALUES
+(1, 10, 6),
+(2, 10, 6),
+(3, 10, 6),
+(4, 10, 6),
+(5, 10, 6),
+(6, 10, 6),
+(7, 10, 6),
+(8, 10, 6),
+(9, 10, 6),
+(10, 10, 6),
+(11, 10, 6),
+(12, 10, 6),
+(13, 10, 6),
+(14, 10, 6),
+(15, 10, 1),
+(16, 10, 6),
+(17, 10, 48);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `rooms`
 --
 
@@ -76,7 +111,7 @@ CREATE TABLE `rooms` (
 
 INSERT INTO `rooms` (`id`, `rooms_name`, `rooms_description`, `rooms_north`, `rooms_east`, `rooms_south`, `rooms_west`, `rooms_playerList`) VALUES
 (0, 'Cardinal Field', 'You stand in the center of a open field. \r\nTo the north, you see a small cavern \r\nTo the south, you see a path leading into a forest. \r\nTo the east, you see a path leading down to a beach.\r\nTo the west, you see a a gravel path leading to a castle gate.', 1, 3, 5, 7, '12,'),
-(1, 'the Eastern Cavern', 'You stand in a small cavern. Water drips from stalagmites and pools in the corner.\r\nYou see light coming from the exit to the south.\r\nThe cavern continues deeper to the west.', -1, -1, 0, 8, '1,0,10,6,'),
+(1, 'the Eastern Cavern', 'You stand in a small cavern. Water drips from stalagmites and pools in the corner.\r\nYou see light coming from the exit to the south.\r\nThe cavern continues deeper to the west.', -1, -1, 0, 8, '0,10,1,6,'),
 (2, 'the Northern Beach', 'After walking north along the beach, you come to stand in front of a coconut tree.\r\nThe beach continues to the south.', -1, -1, 3, -1, ''),
 (3, 'the Beach', 'You stand on a beach. The water rhythmically crashes over the the sand before returning to the ocean.\r\nThe beach continues to the north.\r\nTo the south, you see the remains of a ship crash.', 2, -1, 4, 0, ''),
 (4, 'the Ship Wreck', 'The boat is splintered into many pieces across the sand. You can just make out something shiny in the sand.\r\nThe beach continues to the south.', 3, -1, -1, -1, ''),
@@ -105,9 +140,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `users_username`, `users_password`, `users_characters`, `users_online`, `users_spamTokens`) VALUES
-(0, 'Default', 'Default1!', '0,6,-1', 1, 10),
+(0, 'Default', 'Default1!', '0,6,-1', 0, 10),
 (1, 'Banjoman64', 'werter@5S', '1,-1,-1', 0, 10),
-(14, 'den', 'Rusty1!', '10,11,7', 1, 10),
+(14, 'den', 'Rusty1!', '10,11,7', 0, 10),
 (20, 'Banjo', 'werter@5S', '-1,-1,-1', 0, 10),
 (21, 'Banjoman65', 'werter@5S', '9,-1,-1', 0, 10),
 (22, 'Bovo', 'ASDFghjk1234#', '12,-1,-1', 0, 10);
@@ -120,6 +155,12 @@ INSERT INTO `users` (`id`, `users_username`, `users_password`, `users_characters
 -- Indexes for table `characters`
 --
 ALTER TABLE `characters`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `monster_instances`
+--
+ALTER TABLE `monster_instances`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -143,6 +184,12 @@ ALTER TABLE `users`
 --
 ALTER TABLE `characters`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `monster_instances`
+--
+ALTER TABLE `monster_instances`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `rooms`
